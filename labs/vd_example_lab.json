@@ -1,0 +1,118 @@
+{
+    "template": "vd",
+    "document": {
+        "title": "ENGINEERING LAB RECORD",
+        "date": "13/08/2026"
+    },
+    "images": [
+        {
+            "id": "schematic",
+            "path": "../images/schematic.png",
+            "title": "CMOS Inverter Schematic"
+        },
+        {
+            "id": "layout",
+            "path": "../images/layout.png",
+            "title": "CMOS Layout"
+        }
+    ],
+    "experiments": [
+        {
+            "number": 1,
+            "title": "STATIC CMOS INVERTER CHARACTERIZATION",
+            "date": "13/08/2026",
+            "type": "main_experiment",
+            "sections": [
+                {
+                    "type": "text",
+                    "number": 1,
+                    "title": "AIM",
+                    "text": "To design and simulate a static CMOS inverter using 180 nm technology and analyze its DC transfer characteristics and noise margins."
+                },
+                {
+                    "type": "text",
+                    "number": 2,
+                    "title": "TOOL",
+                    "text": "Cadence Virtuoso, Spectre Simulator, 180nm PDK."
+                },
+                {
+                    "type": "text",
+                    "number": 3,
+                    "title": "THEORY",
+                    "text": [
+                        "The static CMOS inverter consists of a PMOS pull-up transistor and an NMOS pull-down transistor connected in series.",
+                        "The switching threshold voltage $V_{TH}$ occurs at the point where $V_{in} = V_{out}$. Noise margins are given by $NM_H = V_{OH} - V_{IH}$ and $NM_L = V_{IL} - V_{OL}$."
+                    ]
+                },
+                {
+                    "type": "table",
+                    "number": 4,
+                    "title": "DESIGN PARAMETERS",
+                    "tables": [
+                        {
+                            "title": "CMOS Inverter Design Parameters",
+                            "element_type": "column",
+                            "elements": [
+                                {
+                                    "title": "Parameter",
+                                    "entries": ["Technology", "$V_{DD}$", "PMOS Width ($W_p$)", "NMOS Width ($W_n$)"]
+                                },
+                                {
+                                    "title": "Value",
+                                    "entries": ["180 nm", "1.8 V", "400 nm", "400 nm"]
+                                }
+                            ]
+                        },
+                        {
+                            "title": "Simulation Results Comparison",
+                            "element_type": "column",
+                            "elements": [
+                                {
+                                    "title": "Metric",
+                                    "entries": ["$V_{TH}$", "$NM_H$", "$NM_L$"]
+                                },
+                                {
+                                    "title": "Measured",
+                                    "entries": ["0.90 V", "0.80 V", "0.75 V"]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "number": 5,
+                    "title": "CALCULATION",
+                    "text": [
+                        "Noise Margin Calculation:",
+                        "$NM_H = 1.8V - 1.0V = 0.8V$",
+                        "$NM_L = 0.8V - 0.05V = 0.75V$"
+                    ]
+                },
+                {
+                    "type": "image",
+                    "number": 6,
+                    "title": "SCHEMATIC AND LAYOUT",
+                    "subsections": [
+                        {
+                            "title": "Circuits",
+                            "layout": {
+                                "type": "row",
+                                "elements": [
+                                    "schematic",
+                                    "layout"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "number": 7,
+                    "title": "RESULT",
+                    "text": "The static CMOS inverter was successfully designed, simulated, and verified."
+                }
+            ]
+        }
+    ]
+}

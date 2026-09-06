@@ -1,0 +1,39 @@
+{
+  "document": {
+    "title": "COLUMN TABLE TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Column-Based Table Test",
+      "sections": [
+        {
+          "type": "table",
+          "number": 1,
+          "title": "MEASURED VALUES (COLUMN MODE)",
+          "element_type": "column",
+          "elements": [
+            {
+              "title": "Parameter",
+              "entries": [
+                "$V_{OH}$",
+                "$V_{OL}$",
+                "$NM_H$",
+                "$NM_L$"
+              ]
+            },
+            {
+              "title": "Value",
+              "entries": [
+                "1.8 V",
+                "0 V",
+                "$0.9725\\,V$",
+                "$0.5415\\,V$"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

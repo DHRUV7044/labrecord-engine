@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LabRecord Engine Document Schema",
+  "type": "object",
+  "required": ["experiments"],
+  "properties": {
+    "document": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "author": { "type": "string" }
+      }
+    },
+    "experiments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["number", "title", "sections"],
+        "properties": {
+          "number": { "type": ["integer", "string"] },
+          "type": { "type": "string" },
+          "title": { "type": "string" },
+          "date": { "type": "string" },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "title"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["text", "table", "image"]
+                },
+                "number": { "type": ["integer", "string"] },
+                "title": { "type": "string" },
+                "new_page": { "type": "boolean" },
+                "text": {
+                  "type": ["string", "array"],
+                  "items": { "type": "string" }
+                },
+                "element_type": {
+                  "type": "string",
+                  "enum": ["row", "column"]
+                },
+                "elements": { "type": "array" },
+                "tables": { "type": "array" },
+                "images": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "path"],
+                    "properties": {
+                      "id": { "type": "string" },
+                      "path": { "type": "string" },
+                      "title": { "type": "string" },
+                      "rotation": { "type": "number" }
+                    }
+                  }
+                },
+                "subsections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": { "type": "string" },
+                      "layout": { "type": ["object", "string"] }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

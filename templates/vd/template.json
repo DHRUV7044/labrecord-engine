@@ -1,0 +1,62 @@
+{
+  "name": "vd",
+  "page": {
+    "size": "A4",
+    "margin_mm": {
+      "top": 18,
+      "bottom": 18,
+      "left": 20,
+      "right": 20
+    }
+  },
+  "fonts": {
+    "body": "Times-Roman",
+    "heading": "Helvetica-Bold",
+    "title": "Helvetica-Bold",
+    "caption": "Helvetica-Bold",
+    "header": "Helvetica-Bold",
+    "code": "Courier"
+  },
+  "font_sizes": {
+    "header": 11,
+    "experiment_title": 14,
+    "section_heading": 12,
+    "body": 11,
+    "table_cell": 10,
+    "table_header": 10,
+    "caption": 10
+  },
+  "experiment_header": {
+    "layout_style": "split_top",
+    "font_size": 14,
+    "exp_no_offset_y": 4,
+    "date_offset_y": 4,
+    "rule_offset_y": -6,
+    "spacing_after": 15,
+    "show_date": true,
+    "show_rule": true
+  },
+  "section": {
+    "number_format": "{number}. {title}"
+  },
+  "table": {
+    "number_format": "Table {section_num}.{table_num}: {title}",
+    "numbering_style": "section_based",
+    "font_size": 10,
+    "border_width": 0.5,
+    "cell_padding": 5,
+    "header_bold": true,
+    "header_background": "#ffffff",
+    "spacing_after": 10
+  },
+  "figure": {
+    "number_format": "Figure {section_num}.{figure_num}: {title}",
+    "numbering_style": "section_based"
+  },
+  "image": {
+    "default_gap": 6,
+    "caption_font_size": 10,
+    "caption_spacing": 4,
+    "alignment": "center"
+  }
+}

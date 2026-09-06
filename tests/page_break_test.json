@@ -1,0 +1,34 @@
+{
+  "document": {
+    "title": "PAGE BREAK TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Section New Page Flag Test",
+      "sections": [
+        {
+          "type": "text",
+          "number": 1,
+          "title": "SECTION ONE (CONTINUOUS)",
+          "new_page": false,
+          "text": "This section has new_page set to false. It starts immediately below the title on page 1."
+        },
+        {
+          "type": "text",
+          "number": 2,
+          "title": "SECTION TWO (CONTINUOUS)",
+          "new_page": false,
+          "text": "This section also has new_page set to false. It continues on the same page."
+        },
+        {
+          "type": "text",
+          "number": 3,
+          "title": "SECTION THREE (NEW PAGE FORCED)",
+          "new_page": true,
+          "text": "This section has new_page set to true. It must start at the top of a new PDF page without leaving accidental blank pages."
+        }
+      ]
+    }
+  ]
+}

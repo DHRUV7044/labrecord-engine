@@ -1,0 +1,49 @@
+{
+  "document": {
+    "title": "IMAGE LAYOUT TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Image Row and Column Test",
+      "sections": [
+        {
+          "type": "image",
+          "number": 1,
+          "title": "ROW AND COLUMN IMAGE ARRANGEMENTS",
+          "new_page": true,
+          "images": [
+            {
+              "id": "img1",
+              "path": "images/schematic.png",
+              "title": "Schematic Diagram",
+              "rotation": 0
+            },
+            {
+              "id": "img2",
+              "path": "images/layout.png",
+              "title": "Physical Layout",
+              "rotation": 90
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Horizontal Row Layout",
+              "layout": {
+                "type": "row",
+                "elements": ["img1", "img2"]
+              }
+            },
+            {
+              "title": "Vertical Column Layout",
+              "layout": {
+                "type": "column",
+                "elements": ["img1", "img2"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+import sys
+import os
+
+# Resolve real path of script (resolving symlinks)
+real_script = os.path.realpath(__file__)
+script_dir = os.path.dirname(real_script)
+
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+# Repository root path fallback
+repo_path = "/home/dhruv/labrecord-engine"
+if os.path.exists(repo_path) and repo_path not in sys.path:
+    sys.path.insert(0, repo_path)
+
+from renderer.cli import main
+
+if __name__ == "__main__":
+    main()

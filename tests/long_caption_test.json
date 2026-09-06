@@ -1,0 +1,33 @@
+{
+  "document": {
+    "title": "LONG CAPTION TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "type": "main_experiment",
+      "title": "Long Caption Image Test",
+      "sections": [
+        {
+          "type": "image",
+          "number": 1,
+          "title": "IMAGE WITH DETAILED EXPLANATORY CAPTION",
+          "new_page": true,
+          "images": [
+            {
+              "id": "img1",
+              "path": "images/schematic.png",
+              "title": "Static CMOS Inverter Transistor-Level Schematic Diagram Showing PMOS and NMOS Gate Connections, Supply Rail VDD, and Substrate Taps"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Long Caption Page",
+              "layout": "img1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

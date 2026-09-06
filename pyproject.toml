@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "labrecord-engine"
+version = "1.0.0"
+description = "LabRecord Engine — PDF Typesetting & Document Engine for Engineering Lab Records"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "reportlab>=4.0.0",
+    "pillow>=10.0.0",
+    "matplotlib>=3.5.0"
+]
+
+[project.scripts]
+labfile = "renderer.cli:main"

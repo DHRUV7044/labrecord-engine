@@ -1,0 +1,63 @@
+{
+  "document": {
+    "title": "FREEBOX LAYOUT TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Manual Freebox Placement Test",
+      "sections": [
+        {
+          "type": "image",
+          "number": 1,
+          "title": "EXPLICIT FREEBOX POSITIONING",
+          "new_page": true,
+          "images": [
+            {
+              "id": "img1",
+              "path": "images/schematic.png",
+              "title": "Explicit Top Schematic"
+            },
+            {
+              "id": "img2",
+              "path": "images/layout.png",
+              "title": "Explicit Bottom Layout"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Freebox Page",
+              "layout": {
+                "type": "freebox",
+                "image": "img1",
+                "position": {
+                  "x": 10,
+                  "y": 20
+                },
+                "size": {
+                  "width": 140,
+                  "height": 90
+                }
+              }
+            },
+            {
+              "title": "Second Freebox Page",
+              "layout": {
+                "type": "freebox",
+                "image": "img2",
+                "position": {
+                  "x": 20,
+                  "y": 30
+                },
+                "size": {
+                  "width": 120,
+                  "height": 100
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

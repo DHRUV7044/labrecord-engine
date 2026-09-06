@@ -1,0 +1,138 @@
+{
+  "document": {
+    "title": "LANDSCAPE AND PORTRAIT TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "type": "main_experiment",
+      "title": "Image Aspect Ratio Test",
+      "sections": [
+        {
+          "type": "image",
+          "number": 1,
+          "title": "SINGLE LANDSCAPE IMAGE",
+          "new_page": true,
+          "images": [
+            {
+              "id": "land1",
+              "path": "images/schematic.png",
+              "title": "Single Landscape Image (Schematic)",
+              "rotation": 0
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Page 1 - Landscape",
+              "layout": "land1"
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "number": 2,
+          "title": "SINGLE PORTRAIT IMAGE",
+          "new_page": true,
+          "images": [
+            {
+              "id": "port1",
+              "path": "images/layout.png",
+              "title": "Single Portrait Image (Rotated Layout)",
+              "rotation": 90
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Page 2 - Portrait",
+              "layout": "port1"
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "number": 3,
+          "title": "TWO LANDSCAPE IMAGES IN A ROW",
+          "new_page": true,
+          "images": [
+            {
+              "id": "land1",
+              "path": "images/schematic.png",
+              "title": "Landscape Image A"
+            },
+            {
+              "id": "land2",
+              "path": "images/tb.png",
+              "title": "Landscape Image B"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Row Layout",
+              "layout": {
+                "type": "row",
+                "elements": ["land1", "land2"]
+              }
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "number": 4,
+          "title": "TWO PORTRAIT IMAGES IN A COLUMN",
+          "new_page": true,
+          "images": [
+            {
+              "id": "port1",
+              "path": "images/layout.png",
+              "title": "Portrait Image A",
+              "rotation": 90
+            },
+            {
+              "id": "port2",
+              "path": "images/quantus_run.png",
+              "title": "Portrait Image B",
+              "rotation": 90
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Column Layout",
+              "layout": {
+                "type": "column",
+                "elements": ["port1", "port2"]
+              }
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "number": 5,
+          "title": "MIXED LANDSCAPE AND PORTRAIT IMAGES IN ROW",
+          "new_page": true,
+          "images": [
+            {
+              "id": "port1",
+              "path": "images/layout.png",
+              "title": "Portrait Image",
+              "rotation": 90
+            },
+            {
+              "id": "land1",
+              "path": "images/schematic.png",
+              "title": "Landscape Image"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Mixed Row",
+              "layout": {
+                "type": "row",
+                "elements": ["port1", "land1"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

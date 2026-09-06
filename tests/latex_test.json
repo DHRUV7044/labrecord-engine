@@ -1,0 +1,25 @@
+{
+  "document": {
+    "title": "LATEX EXPRESSION TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "LaTeX Math Test",
+      "sections": [
+        {
+          "type": "text",
+          "number": 1,
+          "title": "INLINE AND STANDALONE EQUATIONS",
+          "text": [
+            "Noise margin HIGH calculation: $NM_H = V_{OH} - V_{IH}$",
+            "Noise margin LOW calculation: $NM_L = V_{IL} - V_{OL}$",
+            "Small signal voltage gain equation: $A_v = -g_mR_L$",
+            "Average propagation delay: $t_{pd} = \\frac{t_{PHL}+t_{PLH}}{2}$",
+            "Threshold voltage expression: $V_{TH} = V_{DD}/2$"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,280 @@
+{
+  "document": {
+    "title": "VLSI ENGINEERING LAB RECORD",
+    "date": "13/08/2026"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "type": "main_experiment",
+      "title": "CMOS Inverter",
+      "date": "13/08/2026",
+      "sections": [
+        {
+          "type": "text",
+          "number": 1,
+          "title": "AIM",
+          "new_page": false,
+          "text": "To design the schematic and layout of a static CMOS inverter using 180 nm technology, simulate its performance without RC extraction and with RC extraction, and compare the obtained results."
+        },
+        {
+          "type": "text",
+          "number": 2,
+          "title": "TOOL",
+          "new_page": false,
+          "text": "Cadence Virtuoso"
+        },
+        {
+          "type": "text",
+          "number": 3,
+          "title": "THEORY",
+          "new_page": false,
+          "text": [
+            "A static CMOS inverter is designed using a PMOS and an NMOS transistor in 180 nm technology. The PMOS is connected between $V_{DD}$ and the output, while the NMOS is connected between the output and ground. The gates of both transistors are connected to the input. The circuit is first simulated at the schematic level to obtain the pre-layout characteristics. The corresponding physical layout is then designed and RC extraction is performed to obtain the parasitic resistance and capacitance introduced by the layout. The extracted circuit is simulated again to obtain the post-layout characteristics. The results obtained before and after RC extraction are compared to observe the effect of layout parasitics on the inverter performance.",
+            "The voltage transfer characteristics of the CMOS inverter are used to determine the input and output voltage limits. $V_{OH}$ is the maximum output voltage, $V_{OL}$ is the minimum output voltage, $V_{IH}$ is the minimum input voltage recognized as HIGH, and $V_{IL}$ is the maximum input voltage recognized as LOW.",
+            "The noise margins indicate the ability of the inverter to tolerate noise without causing an incorrect logic transition. The HIGH and LOW noise margins are calculated as:",
+            "$NM_H = V_{OH} - V_{IH}$",
+            "$NM_L = V_{IL} - V_{OL}$",
+            "The propagation delay represents the time taken by the output to respond to a change in the input. The HIGH-to-LOW propagation delay and LOW-to-HIGH propagation delay are calculated as:",
+            "$t_{PHL} = t_{HL,out} - t_{HL,in}$",
+            "$t_{PLH} = t_{LH,out} - t_{LH,in}$",
+            "The average propagation delay is:",
+            "$t_{pd} = \\frac{t_{PHL}+t_{PLH}}{2}$",
+            "The rise time is the time required for the output to transition from 10% to 90% of its voltage swing:",
+            "$t_r = t_{90\\%} - t_{10\\%}$",
+            "The fall time is the time required for the output to transition from 90% to 10% of its voltage swing:",
+            "$t_f = t_{10\\%} - t_{90\\%}$",
+            "The input signal period is represented by $t_p$ and is related to the input frequency $f$ by:",
+            "$t_p = \\frac{1}{f}$"
+          ]
+        },
+        {
+          "type": "table",
+          "number": 4,
+          "title": "TABLE",
+          "new_page": false,
+          "tables": [
+            {
+              "number": "4.1",
+              "title": "CMOS Inverter Design Parameters",
+              "element_type": "column",
+              "elements": [
+                {
+                  "title": "Parameter",
+                  "entries": [
+                    "Technology",
+                    "$V_{DD}$",
+                    "PMOS Width ($W_p$)",
+                    "NMOS Width ($W_n$)",
+                    "Input Rise Time ($t_r$)",
+                    "Input Fall Time ($t_f$)",
+                    "Input Period Time ($t_p$)"
+                  ]
+                },
+                {
+                  "title": "Value",
+                  "entries": [
+                    "180",
+                    "1.8",
+                    "400",
+                    "400",
+                    "50",
+                    "50",
+                    "20"
+                  ]
+                },
+                {
+                  "title": "Unit",
+                  "entries": [
+                    "nm",
+                    "V",
+                    "nm",
+                    "nm",
+                    "ps",
+                    "ps",
+                    "ns"
+                  ]
+                }
+              ]
+            },
+            {
+              "number": "4.2",
+              "title": "Simulation Results Comparison (With vs. Without RC Extraction)",
+              "element_type": "column",
+              "elements": [
+                {
+                  "title": "Parameter",
+                  "entries": [
+                    "$V_{TH}$",
+                    "$V_{OH}$",
+                    "$V_{OL}$",
+                    "$V_{IH}$",
+                    "$V_{IL}$",
+                    "$NM_H$",
+                    "$NM_L$",
+                    "$t_{pHL}$",
+                    "$t_{pLH}$",
+                    "$t_p$",
+                    "$t_r$",
+                    "$t_f$"
+                  ]
+                },
+                {
+                  "title": "Without RC",
+                  "entries": [
+                    "713.958",
+                    "1.8",
+                    "0",
+                    "827.4818",
+                    "541.4587",
+                    "972.5182",
+                    "541.4587",
+                    "15.02",
+                    "33.7",
+                    "24.36",
+                    "48.89",
+                    "20.82"
+                  ]
+                },
+                {
+                  "title": "With RC",
+                  "entries": [
+                    "712.969",
+                    "1.8",
+                    "0",
+                    "827.543",
+                    "541.4642",
+                    "972.457",
+                    "541.4642",
+                    "22.05",
+                    "48.06",
+                    "35.055",
+                    "78.75",
+                    "28.33"
+                  ]
+                },
+                {
+                  "title": "Unit",
+                  "entries": [
+                    "mV",
+                    "V",
+                    "V",
+                    "mV",
+                    "mV",
+                    "mV",
+                    "mV",
+                    "ps",
+                    "ps",
+                    "ps",
+                    "ps",
+                    "ps"
+                  ]
+                },
+                {
+                  "title": "Error (w.r.t. witout rc) (%)",
+                  "entries": [
+                    "0.1385",
+                    "0",
+                    "0",
+                    "0.0074",
+                    "0.0010",
+                    "0.0063",
+                    "0.0010",
+                    "46.8043",
+                    "42.6113",
+                    "43.9039",
+                    "61.0759",
+                    "36.0711"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "number": 5,
+          "title": "CALCULATION",
+          "new_page": false,
+          "text": [
+            "Without RC (Pre-Layout)",
+            "$NM_H = V_{OH} - V_{IH} = 1.8 - 0.8274818 = 0.9725182\\,V$",
+            "$NM_L = V_{IL} - V_{OL} = 0.5414587 - 0 = 0.5414587\\,V$",
+            "$t_{PHL} = t_{HL,out} - t_{HL,in} = 20.09002 - 20.075 = 0.01502\\,ns$",
+            "$t_{PLH} = t_{LH,out} - t_{LH,in} = 10.1587 - 10.125 = 0.03370\\,ns$",
+            "$t_{pd} = \\frac{t_{PHL}+t_{PLH}}{2} = \\frac{0.01502+0.03370}{2} = 0.02436\\,ns$",
+            "$t_r = t_{r90} - t_{r10} = 10.18934 - 10.14045 = 0.04889\\,ns$",
+            "$t_f = t_{f10} - t_{f90} = 20.09996 - 20.07914 = 0.02082\\,ns$",
+            "With RC (Post-Layout)",
+            "$NM_H = V_{OH} - V_{IH} = 1.8 - 0.827543 = 0.972457\\,V$",
+            "$NM_L = V_{IL} - V_{OL} = 0.5414642 - 0 = 0.5414642\\,V$",
+            "$t_{PHL} = t_{HL,out} - t_{HL,in} = 20.09705 - 20.075 = 0.02205\\,ns$",
+            "$t_{PLH} = t_{LH,out} - t_{LH,in} = 10.17306 - 10.125 = 0.04806\\,ns$",
+            "$t_{pd} = \\frac{t_{PHL}+t_{PLH}}{2} = \\frac{0.02205+0.04806}{2} = 0.035055\\,ns$",
+            "$t_r = t_{r90} - t_{r10} = 10.22356 - 10.14481 = 0.07875\\,ns$",
+            "$t_f = t_{f10} - t_{f90} = 20.11077 - 20.08244 = 0.02833\\,ns$"
+          ]
+        },
+        {
+          "type": "image",
+          "number": 6,
+          "title": "SIMULATION RESULTS",
+          "new_page": true,
+          "images": [
+            {
+              "id": "img1",
+              "path": "images/schematic.png",
+              "title": "CMOS Inverter Schematic"
+            },
+            {
+              "id": "img2",
+              "path": "images/layout.png",
+              "title": "CMOS Inverter Layout"
+            },
+            {
+              "id": "img3",
+              "path": "images/dc_both.png",
+              "title": "DC Voltage Transfer Characteristics"
+            },
+            {
+              "id": "img4",
+              "path": "images/tran_both.png",
+              "title": "Transient Response Comparison"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "Page 1 - Circuit & Simulation Layout",
+              "layout": {
+                "type": "column",
+                "elements": [
+                  {
+                    "type": "row",
+                    "elements": [
+                      "img1",
+                      "img2"
+                    ]
+                  },
+                  {
+                    "type": "row",
+                    "elements": [
+                      "img3",
+                      "img4"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "number": 7,
+          "title": "RESULT",
+          "new_page": false,
+          "text": "The static CMOS inverter was successfully designed and simulated in 180 nm technology. After RC extraction, propagation delay, rise time, and fall time increased due to layout parasitics, while the noise margins showed only minor variation."
+        }
+      ]
+    }
+  ]
+}

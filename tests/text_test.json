@@ -1,0 +1,30 @@
+{
+  "document": {
+    "title": "TEXT TEST DOCUMENT"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Text Section Test",
+      "sections": [
+        {
+          "type": "text",
+          "number": 1,
+          "title": "SHORT PARAGRAPH",
+          "text": "This is a short single-line paragraph for testing text section rendering."
+        },
+        {
+          "type": "text",
+          "number": 2,
+          "title": "MULTIPLE PARAGRAPHS AND LONG TEXT",
+          "text": [
+            "First paragraph: Engineering laboratory records require clear formatting, structured layout, and consistent line spacing. The LabRecord Engine provides a flow-based rendering system for typesetting engineering notes.",
+            "Second paragraph: Long text paragraphs automatically wrap cleanly within the configured page margins without overflowing horizontally or vertically.",
+            "Third paragraph: When content exceeds the height of the available printable page area, the flow-based layout engine automatically splits paragraphs across page boundaries and continues rendering at the top of the next page.",
+            "Fourth paragraph: Repeat testing paragraph to ensure page continuation works seamlessly without dropping any lines of text or clipping bottom text margins."
+          ]
+        }
+      ]
+    }
+  ]
+}

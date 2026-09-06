@@ -1,0 +1,39 @@
+{
+  "document": {
+    "title": "ROW TABLE TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Row-Based Table Test",
+      "sections": [
+        {
+          "type": "table",
+          "number": 1,
+          "title": "DESIGN PARAMETERS (ROW MODE)",
+          "element_type": "row",
+          "elements": [
+            {
+              "title": "Parameter",
+              "entries": [
+                "Technology",
+                "$V_{DD}$",
+                "PMOS Width ($W_p$)",
+                "NMOS Width ($W_n$)"
+              ]
+            },
+            {
+              "title": "Value",
+              "entries": [
+                "180 nm",
+                "1.8 V",
+                "400 nm",
+                "400 nm"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

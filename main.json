@@ -1,0 +1,53 @@
+{
+  "jobs": [
+    {
+      "input": "labs/example_lab.json",
+      "output": "output/example_lab.pdf"
+    },
+    {
+      "input": "labs/vd_example_lab.json",
+      "output": "output/vd_example_lab.pdf"
+    },
+
+    {
+      "input": "tests/landscape_portrait_test.json",
+      "output": "output/landscape_portrait_test.pdf"
+    },
+    {
+      "input": "tests/long_caption_test.json",
+      "output": "output/long_caption_test.pdf"
+    },
+    {
+      "input": "tests/text_test.json",
+      "output": "output/text_test.pdf"
+    },
+    {
+      "input": "tests/latex_test.json",
+      "output": "output/latex_test.pdf"
+    },
+    {
+      "input": "tests/table_row_test.json",
+      "output": "output/table_row_test.pdf"
+    },
+    {
+      "input": "tests/table_column_test.json",
+      "output": "output/table_column_test.pdf"
+    },
+    {
+      "input": "tests/image_test.json",
+      "output": "output/image_test.pdf"
+    },
+    {
+      "input": "tests/image_grid_test.json",
+      "output": "output/image_grid_test.pdf"
+    },
+    {
+      "input": "tests/freebox_test.json",
+      "output": "output/freebox_test.pdf"
+    },
+    {
+      "input": "tests/page_break_test.json",
+      "output": "output/page_break_test.pdf"
+    }
+  ]
+}

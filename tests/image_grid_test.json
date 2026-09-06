@@ -1,0 +1,59 @@
+{
+  "document": {
+    "title": "IMAGE GRID TEST"
+  },
+  "experiments": [
+    {
+      "number": 1,
+      "title": "Nested 2x2 Image Grid Test",
+      "sections": [
+        {
+          "type": "image",
+          "number": 1,
+          "title": "NESTED GRID ARRANGEMENT",
+          "new_page": true,
+          "images": [
+            {
+              "id": "img1",
+              "path": "images/schematic.png",
+              "title": "Schematic"
+            },
+            {
+              "id": "img2",
+              "path": "images/layout.png",
+              "title": "Layout"
+            },
+            {
+              "id": "img3",
+              "path": "images/drc.png",
+              "title": "DRC Result"
+            },
+            {
+              "id": "img4",
+              "path": "images/lvs.png",
+              "title": "LVS Match"
+            }
+          ],
+          "subsections": [
+            {
+              "title": "2x2 Image Grid Page",
+              "layout": {
+                "type": "row",
+                "elements": [
+                  {
+                    "type": "column",
+                    "elements": ["img1", "img2"]
+                  },
+                  {
+                    "type": "column",
+                    "elements": ["img3", "img4"]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
