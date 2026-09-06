@@ -1,0 +1,562 @@
+LAB PDF GENERATOR — JSON STRUCTURE SPECIFICATION
+
+Purpose
+
+The JSON describes the content and layout instructions for a lab record.
+Python will parse the JSON and generate the final A4 PDF.
+
+Core hierarchy
+
+Document └── Experiments ├── Experiment title block └── Sections ├──
+Text section ├── Table section ├── Image section └── …
+
+GENERAL RULES
+
+1.  The JSON describes content and layout intent, not PDF coordinates
+    unless explicitly required by an image freebox.
+2.  Every section may optionally request that it starts on a new page.
+3.  Multiple tables can exist inside the same section.
+4.  Multiple image groups can exist inside the same section.
+5.  Mathematical expressions use LaTeX-style syntax and are rendered by
+    the PDF generator.
+6.  Section, table, image, and subsection numbering should be
+    represented explicitly where numbering matters.
+7.  The structure should remain readable and editable by hand.
+
+DOCUMENT
+
+document { “title”: “…”, “experiments”: [ … ] }
+
+EXPERIMENT BLOCK
+
+An experiment block represents one main experiment, assignment, or other
+record item.
+
+experiment { “number”: 1, “type”: “main_experiment”, “title”: “CMOS
+Inverter”,
+
+    "sections": [
+        ...
+    ]
+
+}
+
+“type” is optional if no classification is required.
+
+Recommended type values: - “main_experiment” - “assignment” - or omit
+the field when classification is unnecessary.
+
+SECTION
+
+A section is a numbered content block inside an experiment.
+
+Common fields:
+
+section { “number”: “1”, “title”: “Aim”, “new_page”: false, … }
+
+“new_page”: - false / omitted = continue on the current page when
+possible - true = start this section on a new page
+
+TEXT SECTION
+
+A text section contains normal text and supports LaTeX-style
+mathematical expressions.
+
+text_section { “number”: “2”, “title”: “Theory”, “new_page”: false,
+
+    "text": "The CMOS inverter consists of a PMOS and NMOS transistor. "
+            "The voltage gain is given by $A_v = -g_m R_L$."
+
+}
+
+The “text” field may contain: - normal text - mathematical symbols -
+inline LaTeX - displayed LaTeX expressions
+
+Example:
+
+text { “number”: “3”, “title”: “Calculation”, “new_page”: false,
+
+    "text": [
+        "The high noise margin is calculated using",
+        "$NM_H = V_{OH} - V_{IH}$",
+        "Therefore, $NM_H = 1.8 - 0.8274818 = 0.9725182\\,V$."
+    ]
+
+}
+
+The exact accepted text representation (single string vs array of
+paragraphs) should be standardized during implementation.
+
+TABLE SECTION
+
+A table has: - one table number - one title - one element type -
+multiple entries
+
+A table MUST use either: - row elements OR - column elements
+
+A single table MUST NOT mix row and column element types.
+
+table { “number”: 1, “title”: “Simulation Results”, “element_type”:
+“row”,
+
+    "elements": [
+        ...
+    ]
+
+}
+
+ROW-BASED TABLE
+
+In a row-based table, each element represents one complete row.
+
+table { “number”: 1, “title”: “Simulation Results”, “element_type”:
+“row”,
+
+    "elements": [
+        {
+            "title": "Parameter",
+            "entries": [
+                "VDD",
+                "VOH",
+                "VOL"
+            ]
+        },
+        {
+            "title": "Value",
+            "entries": [
+                "1.8 V",
+                "1.8 V",
+                "0 V"
+            ]
+        }
+    ]
+
+}
+
+The exact meaning of “title” and “entries” can be refined depending on
+whether the title is intended as the row heading or a separate label.
+
+COLUMN-BASED TABLE
+
+In a column-based table, each element represents one complete column.
+
+table { “number”: 2, “title”: “Measured Values”, “element_type”:
+“column”,
+
+    "elements": [
+        {
+            "title": "Parameter",
+            "entries": [
+                "VIL",
+                "VIH",
+                "VOL",
+                "VOH"
+            ]
+        },
+        {
+            "title": "Value",
+            "entries": [
+                "0.631 V",
+                "0.827 V",
+                "0 V",
+                "1.8 V"
+            ]
+        }
+    ]
+
+}
+
+TABLE EXPRESSIONS
+
+Every table entry supports expressions.
+
+Examples:
+
+“c1e2 + c2e2” “R_1 + R_2” “V_{OH} - V_{IH}” “1.8 / 2” “V_(DD)/2”
+
+The parser should preserve normal text while allowing mathematical
+expressions wherever an entry occurs.
+
+Example:
+
+{ “title”: “NMH”, “entries”: [ “V_(OH) − V_(IH)”, “1.8 − 0.8274818”,
+“$0.9725182\\,V$” ] }
+
+MULTIPLE TABLES IN ONE SECTION
+
+A section may contain multiple tables.
+
+Example:
+
+section { “number”: “4”, “title”: “Results”, “new_page”: false,
+
+    "tables": [
+        {
+            "number": 1,
+            "title": "DC Analysis",
+            "element_type": "row",
+            "elements": [
+                ...
+            ]
+        },
+        {
+            "number": 2,
+            "title": "Transient Analysis",
+            "element_type": "row",
+            "elements": [
+                ...
+            ]
+        }
+    ]
+
+}
+
+IMAGE SECTION
+
+An image section contains: - one image-section number - one title -
+image layout subsections
+
+The purpose of the image section is to control how multiple images are
+arranged on individual PDF pages.
+
+IMAGE OBJECT
+
+Each image is defined separately so that row/column layouts can
+reference the image by its path and title.
+
+image { “id”: “img1”, “path”: “images/schematic.png”, “title”: “CMOS
+Inverter Schematic” }
+
+Recommended image fields: - id - path - title
+
+The image object stores the image itself and its default metadata. The
+layout element determines where/how it is placed.
+
+IMAGE SECTION STRUCTURE
+
+image_section { “number”: 1, “title”: “Schematic and Layout”,
+“new_page”: false,
+
+    "images": [
+        {
+            "id": "img1",
+            "path": "images/schematic.png",
+            "title": "CMOS Inverter Schematic"
+        },
+        {
+            "id": "img2",
+            "path": "images/layout.png",
+            "title": "CMOS Inverter Layout"
+        }
+    ],
+
+    "subsections": [
+        ...
+    ]
+
+}
+
+There should be one image subsection per PDF page.
+
+IMAGE SUBSECTION
+
+An image subsection defines the arrangement of images on ONE PDF page.
+
+image_subsection { “title”: “Schematic”, “layout”: … }
+
+The subsection is the unit that gets rendered onto a single page.
+
+If more than one page of images is required, create multiple image
+subsections.
+
+IMAGE LAYOUT ELEMENTS
+
+Three layout element types are supported:
+
+1.  row
+2.  column
+3.  freebox
+
+ROW
+
+A row arranges image elements horizontally.
+
+Conceptual form:
+
+row { “type”: “row”, “elements”: [ … ] }
+
+A row uses image references. It does not redefine the image path/title.
+
+Example:
+
+{ “type”: “row”, “elements”: [ “img1”, “img2” ] }
+
+Result conceptually:
+
++—————-+ +—————-+ | img1 | | img2 | +—————-+ +—————-+
+
+COLUMN
+
+A column arranges image elements vertically.
+
+Example:
+
+{ “type”: “column”, “elements”: [ “img1”, “img2” ] }
+
+Result conceptually:
+
++----------------+
+|     img1       |
++----------------+
+|     img2       |
++----------------+
+
+NESTED ROW + COLUMN
+
+Row and column elements may be nested.
+
+This allows grid layouts.
+
+Example: 2 x 2 grid
+
+{ “type”: “row”, “elements”: [ { “type”: “column”, “elements”: [ “img1”,
+“img2” ] }, { “type”: “column”, “elements”: [ “img3”, “img4” ] } ] }
+
+The nesting structure determines the arrangement.
+
+IMPORTANT: - row/column elements reference existing image objects. -
+They should not contain a second copy of the image path and title. - The
+renderer determines the final dimensions based on the available page
+area and layout rules.
+
+FREEBOX
+
+A freebox provides explicit positioning and sizing for one image.
+
+A freebox contains: - image path - image title - width - height -
+top-left coordinate
+
+Example:
+
+{ “type”: “freebox”, “image”: { “path”: “images/layout.png”, “title”:
+“CMOS Layout” }, “size”: { “width”: 150, “height”: 90 }, “position”: {
+“x”: 30, “y”: 50 } }
+
+The coordinate system must be fixed globally during implementation.
+
+Recommended: - origin = top-left corner of the usable image-page area -
+x increases to the right - y increases downward - dimensions in
+millimetres
+
+This avoids ambiguity in PDF placement.
+
+FREEBOX VS ROW/COLUMN
+
+ROW/COLUMN: - automatic layout - image path/title comes from the image
+object - useful for grids and normal arrangements - renderer controls
+image dimensions
+
+FREEBOX: - manual layout - explicit position - explicit width - explicit
+height - useful when exact placement is required
+
+Example use: - two images in a normal 2 x 2 grid -> row/column - one
+waveform that must be exactly 160 mm x 70 mm at a specific position ->
+freebox
+
+IMAGE SUBSECTION EXAMPLE
+
+{ “title”: “Simulation Results”,
+
+    "layout": {
+        "type": "row",
+        "elements": [
+            {
+                "type": "column",
+                "elements": [
+                    "img1",
+                    "img2"
+                ]
+            },
+            {
+                "type": "column",
+                "elements": [
+                    "img3",
+                    "img4"
+                ]
+            }
+        ]
+    }
+
+}
+
+IMAGE SECTION WITH MULTIPLE PAGES
+
+{ “number”: 5, “title”: “Simulation Results”, “new_page”: true,
+
+    "images": [
+        {
+            "id": "img1",
+            "path": "images/schematic.png",
+            "title": "Schematic"
+        },
+        {
+            "id": "img2",
+            "path": "images/dc.png",
+            "title": "DC Analysis"
+        },
+        {
+            "id": "img3",
+            "path": "images/transient.png",
+            "title": "Transient Analysis"
+        },
+        {
+            "id": "img4",
+            "path": "images/layout.png",
+            "title": "Layout"
+        }
+    ],
+
+    "subsections": [
+        {
+            "title": "Page 1",
+            "layout": {
+                "type": "row",
+                "elements": [
+                    {
+                        "type": "column",
+                        "elements": [
+                            "img1",
+                            "img2"
+                        ]
+                    },
+                    {
+                        "type": "column",
+                        "elements": [
+                            "img3",
+                            "img4"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+
+}
+
+NEW PAGE OPTION
+
+The new-page option applies to sections and should be generalized so it
+can be reused by text, table, and image sections.
+
+Example:
+
+{ “number”: “6”, “title”: “Conclusion”, “new_page”: true, “text”: “The
+circuit was successfully designed and simulated.” }
+
+Meaning: - finish the previous content - start this section at the top
+of the next PDF page
+
+The same option should work for: - text sections - table sections -
+image sections
+
+Do not use page coordinates for normal sections.
+
+RECOMMENDED FINAL CONTENT MODEL
+
+An experiment can therefore look conceptually like:
+
+experiment { “number”: 1, “type”: “main_experiment”, “title”: “CMOS
+Inverter”,
+
+    "sections": [
+        {
+            "type": "text",
+            "number": "1",
+            "title": "Aim",
+            "new_page": false,
+            "text": "..."
+        },
+
+        {
+            "type": "text",
+            "number": "2",
+            "title": "Theory",
+            "new_page": false,
+            "text": "..."
+        },
+
+        {
+            "type": "table",
+            "number": "3",
+            "title": "Parameters",
+            "new_page": false,
+            "element_type": "row",
+            "elements": [
+                ...
+            ]
+        },
+
+        {
+            "type": "table",
+            "number": "4",
+            "title": "Results",
+            "new_page": false,
+            "element_type": "column",
+            "elements": [
+                ...
+            ]
+        },
+
+        {
+            "type": "image",
+            "number": "5",
+            "title": "Simulation",
+            "new_page": true,
+
+            "images": [
+                ...
+            ],
+
+            "subsections": [
+                ...
+            ]
+        }
+    ]
+
+}
+
+DESIGN CONSTRAINTS
+
+1.  A table cannot mix row and column elements.
+2.  An image subsection represents exactly one PDF page.
+3.  Row and column image elements reference image objects.
+4.  Freebox explicitly defines image position and dimensions.
+5.  Normal sections should use automatic document flow.
+6.  “new_page”: true forces the section to start on a new page.
+7.  Mathematical expressions are supported in text and table entries.
+8.  Image titles/captions should be stored with the image object and
+    reused automatically by the renderer.
+9.  Page dimensions and units should be defined globally rather than
+    repeated throughout every object.
+10. Styling such as font size, margins, line spacing, and page
+    dimensions belongs in a separate configuration object/file, not in
+    the content JSON.
+
+FUTURE CONFIGURATION LAYER
+
+The content JSON should remain independent from visual styling.
+
+A separate configuration can later contain:
+
+page: size margins
+
+fonts: body heading title caption
+
+paragraph: line_spacing spacing_before spacing_after
+
+table: border_width cell_padding header_font_size
+
+image: default_width default_height caption_size spacing
+
+This separation allows the same lab.json to be rendered using different
+visual styles without modifying the experiment content.
