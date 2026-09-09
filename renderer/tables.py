@@ -175,9 +175,25 @@ def extract_number(val_str):
 def contains_expression(text):
     if not isinstance(text, str):
         return False
+    t = text.strip()
+    if t.startswith('='):
+        return True
+
     ref_pattern = r'\b(?:re\d+|rc\d+|ce\d+|cr\d+|r\d+e\d+|r\d+c\d+|c\d+e\d+|c\d+r\d+)\b'
     func_pattern = r'\b(?:avg|mean|perr|abs|sum|min|max)\s*\('
-    return bool(re.search(ref_pattern, text, re.IGNORECASE) or re.search(func_pattern, text, re.IGNORECASE))
+    math_op_pattern = r'[\d.]+\s*[-+*/^]\s*[\d.]+'
+    paren_math_pattern = r'\([\d.\s]+[-+*/^][\d.\s)]+'
+
+    # Do not treat pure LaTeX math symbols like $V_{DD}$ or $V_{th}$ as numeric math expressions
+    if re.search(r'^\$[a-zA-Z_]+\{?[a-zA-Z0-9_]*\}?\$', t) and not re.search(r'[\d.]+\s*[-+*/^]\s*[\d.]+', t):
+        return False
+
+    return bool(
+        re.search(ref_pattern, t, re.IGNORECASE) or
+        re.search(func_pattern, t, re.IGNORECASE) or
+        re.search(math_op_pattern, t) or
+        re.search(paren_math_pattern, t)
+    )
 
 
 def resolve_cell_value(matrix, target_r, target_c, cache, visited):

@@ -58,6 +58,19 @@ def test_avg_and_perr_functions():
     assert res[3][2] == "50.4"
 
 
+def test_direct_arithmetic_expressions():
+    matrix = [
+        ["Formula", "Result"],
+        ["(37.0219-37.0075)*1000", "(37.0219-37.0075)*1000"],
+        ["=(37.0219-37.0075)*1000", "=(37.0219-37.0075)*1000"],
+        ["37.0219 - 37.0075", "37.0219 - 37.0075"]
+    ]
+    res = process_table_matrix_expressions(matrix)
+    assert res[1][1] == "14.4"
+    assert res[2][1] == "14.4"
+    assert res[3][1] == "0.0144"
+
+
 def test_render_table_calculations_pdf():
     with tempfile.TemporaryDirectory() as tmpdir:
         doc_data = {
