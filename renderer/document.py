@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 
 class ImageObject:
     def __init__(self, id, path, title="", rotation=0, doc_dir="."):
@@ -27,21 +28,45 @@ class ImageObject:
 
 
 class TableObject:
-    def __init__(self, number, title, element_type, elements):
+    def __init__(self, number, title, element_type, elements, csv_path=None, doc_dir=".", delimiter=","):
         self.number = number
         self.title = title
         self.element_type = element_type.lower() if isinstance(element_type, str) else ""
         self.elements = elements or []
+        self.csv_path = csv_path
+        self.doc_dir = doc_dir
+        self.delimiter = delimiter or ","
+        self.csv_matrix = None
+
+        if self.csv_path:
+            self.load_csv()
+
+    def load_csv(self):
+        abs_path = self.csv_path if os.path.isabs(self.csv_path) else os.path.normpath(os.path.join(self.doc_dir, self.csv_path))
+        if not os.path.exists(abs_path):
+            raise FileNotFoundError(f'ERROR: CSV file not found "{abs_path}" in {self.doc_dir}')
+
+        matrix = []
+        try:
+            with open(abs_path, "r", encoding="utf-8-sig") as f:
+                reader = csv.reader(f, delimiter=self.delimiter)
+                for row in reader:
+                    matrix.append([cell.strip() for cell in row])
+        except Exception as e:
+            raise ValueError(f'ERROR: Failed to read CSV file "{abs_path}": {e}')
+
+        self.csv_matrix = matrix
 
     def validate(self):
-        if self.element_type not in ("row", "column"):
+        if self.element_type and self.element_type not in ("row", "column"):
             raise ValueError(f'ERROR: Table {self.number} contains invalid or mixed "row" and "column" elements.')
 
         for idx, elem in enumerate(self.elements):
             if isinstance(elem, dict):
                 e_type = elem.get("element_type")
-                if e_type and e_type.lower() != self.element_type:
+                if e_type and self.element_type and e_type.lower() != self.element_type:
                     raise ValueError(f'ERROR: Table {self.number} contains mixed "row" and "column" elements.')
+
 
 
 class LayoutNode:
@@ -74,11 +99,53 @@ class ImageSubsection:
 
 class Section:
     def __init__(self, data, doc_dir=".", global_images=None):
-        self.type = data.get("type", "text").lower()
+        raw_type = data.get("type")
+        if not raw_type and any(k in data for k in ("csv", "csv_file")):
+            self.type = "table"
+        elif not raw_type and any(k in data for k in ("file", "code_file", "source", "code")):
+            self.type = "code"
+        else:
+            self.type = (raw_type or "text").lower()
+
         self.number = data.get("number", "")
         self.title = data.get("title", "")
         self.new_page = bool(data.get("new_page", False))
         self.doc_dir = doc_dir
+
+        # Code attributes
+        self.code_text = ""
+        self.code_path = None
+        self.language = data.get("language") or data.get("lang") or ""
+        self.show_line_numbers = data.get("show_line_numbers", data.get("line_numbers", True))
+
+        if self.type == "code":
+            code_file_rel = (
+                data.get("file") or
+                data.get("path") or
+                data.get("code_file") or
+                data.get("source")
+            )
+            if code_file_rel:
+                self.code_path = code_file_rel
+                if not os.path.isabs(code_file_rel):
+                    abs_path = os.path.normpath(os.path.join(doc_dir, code_file_rel))
+                else:
+                    abs_path = code_file_rel
+
+                if not os.path.exists(abs_path):
+                    raise FileNotFoundError(f'ERROR: Code file not found "{abs_path}" in {doc_dir}')
+
+                try:
+                    with open(abs_path, "r", encoding="utf-8") as f:
+                        self.code_text = f.read()
+                except Exception as e:
+                    raise ValueError(f'ERROR: Failed to read code file "{abs_path}": {e}')
+            else:
+                raw_code = data.get("code", data.get("text", ""))
+                if isinstance(raw_code, list):
+                    self.code_text = "\n".join(str(line) for line in raw_code)
+                else:
+                    self.code_text = str(raw_code)
 
         # Text attributes
         raw_text = data.get("text", "")
@@ -94,20 +161,30 @@ class Section:
         if self.type == "table":
             if "tables" in data:
                 for t_data in data["tables"]:
+                    csv_p = t_data.get("csv") or t_data.get("csv_file") or t_data.get("file") or t_data.get("path")
+                    delim = t_data.get("delimiter") or t_data.get("sep") or ","
                     tbl = TableObject(
                         t_data.get("number", self.number),
                         t_data.get("title", self.title),
                         t_data.get("element_type"),
-                        t_data.get("elements")
+                        t_data.get("elements"),
+                        csv_path=csv_p,
+                        doc_dir=doc_dir,
+                        delimiter=delim
                     )
                     tbl.validate()
                     self.tables.append(tbl)
             else:
+                csv_p = data.get("csv") or data.get("csv_file") or (data.get("file") if "elements" not in data and "tables" not in data else None) or (data.get("path") if "elements" not in data and "tables" not in data else None)
+                delim = data.get("delimiter") or data.get("sep") or ","
                 tbl = TableObject(
                     data.get("number", self.number),
                     data.get("title", self.title),
                     data.get("element_type"),
-                    data.get("elements")
+                    data.get("elements"),
+                    csv_path=csv_p,
+                    doc_dir=doc_dir,
+                    delimiter=delim
                 )
                 tbl.validate()
                 self.tables.append(tbl)
@@ -139,7 +216,7 @@ class Section:
 
 class Experiment:
     def __init__(self, data, doc_dir=".", global_images=None):
-        self.number = data.get("number", 1)
+        self.number = data.get("number")  # Optional: None if omitted
         self.type = data.get("type")  # Optional: None if omitted
         self.title = data.get("title", "")
         self.date = data.get("date", "")

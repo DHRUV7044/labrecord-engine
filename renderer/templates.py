@@ -214,6 +214,89 @@ VD_RECORD_JSON = {
     ]
 }
 
+CAO_RECORD_JSON = {
+    "template": "cao",
+    "document": {
+        "title": "COMPUTER ARCHITECTURE & ORGANIZATION LAB RECORD"
+    },
+    "images": [
+        {
+            "id": "design",
+            "path": "design.png",
+            "title": "Design",
+            "rotation": 0
+        },
+        {
+            "id": "tb",
+            "path": "tb.png",
+            "title": "Tb",
+            "rotation": 0
+        },
+        {
+            "id": "waveform",
+            "path": "waveform.png",
+            "title": "Waveform",
+            "rotation": 0
+        }
+    ],
+    "experiments": [
+        {
+            "title": "Lab 1: Ripple Carry Adder (RCA)",
+            "sections": [
+                {
+                    "type": "code",
+                    "language": "Verilog"
+                },
+                {
+                    "type": "code",
+                    "language": "Verilog"
+                },
+                {
+                    "type": "code",
+                    "language": "Verilog"
+                },
+                {
+                    "type": "code",
+                    "language": "Verilog"
+                },
+                {
+                    "type": "image",
+                    "title": "Screenshot of Code",
+                    "new_page": True,
+                    "subsections": [
+                        {
+                            "title": "Page 1 - Circuit & Simulation Layout",
+                            "layout": {
+                                "type": "column",
+                                "elements": [
+                                    "design",
+                                    "tb"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "image",
+                    "title": "Waveform",
+                    "new_page": False,
+                    "subsections": [
+                        {
+                            "title": "Page 1 - Circuit & Simulation Layout",
+                            "layout": {
+                                "type": "column",
+                                "elements": [
+                                    "waveform"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
 TEMPLATES = {
     "default": {
         "main.json": DEFAULT_MAIN_JSON,
@@ -224,6 +307,11 @@ TEMPLATES = {
         "main.json": DEFAULT_MAIN_JSON,
         "config.json": DEFAULT_CONFIG_JSON,
         "record.json": VD_RECORD_JSON
+    },
+    "cao": {
+        "main.json": DEFAULT_MAIN_JSON,
+        "config.json": DEFAULT_CONFIG_JSON,
+        "record.json": CAO_RECORD_JSON
     }
 }
 

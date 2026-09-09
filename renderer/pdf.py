@@ -12,6 +12,7 @@ from .pages import draw_top_header_rule, SectionHeadingFlowable, LabCanvas
 from .text import create_paragraph
 from .tables import create_table_flowable
 from .images import ImagePageFlowable
+from .code import create_code_flowable
 
 
 def generate_document_pdf(doc_model, output_path, config=None):
@@ -32,8 +33,15 @@ def generate_document_pdf(doc_model, output_path, config=None):
     margin_t = config.margin_top
     margin_b = config.margin_bottom
 
-    # Leave top space for top date & experiment header rule
-    top_margin_doc = margin_t + 20
+    # Check if experiment header is enabled
+    show_header = config.get("experiment_header", "show_header", default=None)
+    if show_header is None:
+        show_header = config.get("experiment_header", "enabled", default=None)
+    if show_header is None:
+        show_header = config.get("header", "show_header", default=True)
+
+    top_margin_doc = (margin_t + 20) if show_header else margin_t
+
 
     doc = SimpleDocTemplate(
         output_path,
@@ -60,7 +68,7 @@ def generate_document_pdf(doc_model, output_path, config=None):
 
     story = []
     first_exp = doc_model.experiments[0] if doc_model.experiments else None
-    exp_num = first_exp.number if first_exp else 1
+    exp_num = first_exp.number if first_exp else None
     exp_type = first_exp.type if first_exp else None
     exp_date = first_exp.date if (first_exp and first_exp.date) else doc_model.date
 
@@ -135,6 +143,10 @@ def generate_document_pdf(doc_model, output_path, config=None):
                         seq_fig_counter += placed_count
 
                 story.append(Spacer(1, 4))
+
+            elif sec.type == "code":
+                code_flowables = create_code_flowable(sec, config)
+                story.extend(code_flowables)
 
     doc.build(story, onFirstPage=on_first_page, onLaterPages=on_later_pages, canvasmaker=LabCanvas)
     return output_path

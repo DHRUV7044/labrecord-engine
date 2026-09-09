@@ -32,7 +32,8 @@ DEFAULT_CONFIG = {
         "body": 11,
         "table_cell": 10,
         "table_header": 10,
-        "caption": 10
+        "caption": 10,
+        "code": 9
     },
     "experiment_header": {
         "font_size": 14,
@@ -61,6 +62,17 @@ DEFAULT_CONFIG = {
         "caption_font_size": 10,
         "caption_spacing": 4,
         "alignment": "center"
+    },
+    "code": {
+        "font": "Courier",
+        "font_size": 9,
+        "line_spacing": 1.2,
+        "background_color": "#f8f9fa",
+        "header_background": "#eaeded",
+        "border_color": "#cccccc",
+        "line_number_color": "#888888",
+        "show_line_numbers": True,
+        "spacing_after": 10
     },
     "header": {
         "show_header": True,

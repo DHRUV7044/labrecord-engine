@@ -5,6 +5,7 @@ import os
 from .pdf import build_manifest
 from .templates import init_project
 from .scanner import scan_images
+from .csv_importer import add_csv_to_record
 
 VERSION = "1.0.0"
 
@@ -72,14 +73,46 @@ def handle_init(args):
             force=args.force
         )
 
+        rec_path = os.path.join(args.directory, "record.json")
+
         if args.scan:
             scan_dir = args.scan if isinstance(args.scan, str) else args.directory
-            rec_path = os.path.join(args.directory, "record.json")
             added, skipped = scan_images(image_dir=scan_dir, record_json_path=rec_path)
             print(f"Scanned '{scan_dir}': registered {len(added)} new image(s) in record.json.")
 
+        if args.csv:
+            add_csv_to_record(csv_path=args.csv, record_json_path=rec_path)
+            print(f"Imported CSV '{args.csv}' into record.json.")
+
     except Exception as e:
         print(f"ERROR: {e}")
+        sys.exit(1)
+
+
+def handle_csv(args):
+    print("========================================")
+    print("LabRecord Engine — CSV Table Importer")
+    print("========================================")
+    print()
+
+    try:
+        sec = add_csv_to_record(
+            csv_path=args.csv_file,
+            record_json_path=args.record,
+            title=args.title,
+            number=args.number,
+            embed=args.embed,
+            delimiter=args.delimiter
+        )
+        print(f"Successfully imported CSV '{args.csv_file}' into {args.record}")
+        print(f"  Title: {sec.get('title')}")
+        if "csv" in sec:
+            print(f"  Mode : Path Reference ('{sec['csv']}')")
+        else:
+            print("  Mode : Embedded Matrix")
+        print()
+    except Exception as e:
+        print(f"ERROR: CSV import failed: {e}")
         sys.exit(1)
 
 
@@ -216,6 +249,11 @@ def main():
         default=None,
         help="Scan directory for images during initialization and add them to record.json"
     )
+    init_parser.add_argument(
+        "--csv",
+        default=None,
+        help="Import CSV table file into record.json during initialization"
+    )
 
     # generate command
     generate_parser = subparsers.add_parser(
@@ -263,6 +301,42 @@ def main():
         help="Overwrite existing image entries with matching IDs"
     )
 
+    # csv command
+    csv_parser = subparsers.add_parser(
+        "csv",
+        help="Import a CSV file into document table section",
+        description="Reads a CSV file and appends a table section to record.json."
+    )
+    csv_parser.add_argument(
+        "csv_file",
+        help="Path to CSV file to import"
+    )
+    csv_parser.add_argument(
+        "-r", "--record",
+        default="record.json",
+        help="Target document JSON file to update (default: 'record.json')"
+    )
+    csv_parser.add_argument(
+        "-t", "--title",
+        default=None,
+        help="Optional title for the table"
+    )
+    csv_parser.add_argument(
+        "-n", "--number",
+        default=None,
+        help="Optional table / section number"
+    )
+    csv_parser.add_argument(
+        "--embed",
+        action="store_true",
+        help="Embed table cell data directly into JSON instead of linking CSV path"
+    )
+    csv_parser.add_argument(
+        "-d", "--delimiter",
+        default=",",
+        help="CSV column delimiter character (default: ',')"
+    )
+
     # templates command
     templates_parser = subparsers.add_parser(
         "templates",
@@ -278,6 +352,8 @@ def main():
         handle_generate(args)
     elif args.command == "scan":
         handle_scan(args)
+    elif args.command == "csv":
+        handle_csv(args)
     elif args.command == "templates":
         handle_templates(args)
     else:

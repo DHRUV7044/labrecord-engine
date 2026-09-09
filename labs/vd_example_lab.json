@@ -65,16 +65,12 @@
                         },
                         {
                             "title": "Simulation Results Comparison",
-                            "element_type": "column",
                             "elements": [
-                                {
-                                    "title": "Metric",
-                                    "entries": ["$V_{TH}$", "$NM_H$", "$NM_L$"]
-                                },
-                                {
-                                    "title": "Measured",
-                                    "entries": ["0.90 V", "0.80 V", "0.75 V"]
-                                }
+                                "Metric , Without RC , With RC , Difference , Error (%)",
+                                "$V_{TH}$ , 713.958 mV , 712.969 mV , re3 - re2 , $perr(re2, re3)$",
+                                "$t_{pHL}$ , 15.02 ps , 22.05 ps , re3 - re2 , $perr(re2, re3)$",
+                                "$t_{pLH}$ , 33.70 ps , 48.06 ps , re3 - re2 , $perr(re2, re3)$",
+                                "Average Delay , $avg(ce2, ce3)$ , $avg(ce2, ce3)$ , re3 - re2 , $perr(re2, re3)$"
                             ]
                         }
                     ]

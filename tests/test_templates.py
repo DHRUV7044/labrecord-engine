@@ -15,6 +15,14 @@ def test_list_available_templates():
     templates = list_available_templates()
     assert "default" in templates
     assert "vd" in templates
+    assert "cao" in templates
+
+
+def test_load_template_cao():
+    data = load_template("cao")
+    assert data["name"] == "cao"
+    assert "page" in data
+    assert "code" in data
 
 
 def test_load_template_default():
@@ -42,6 +50,7 @@ def test_invalid_template_error():
     assert "ERROR: Template 'nonexistent_template' not found." in err_msg
     assert "default" in err_msg
     assert "vd" in err_msg
+    assert "cao" in err_msg
 
 
 def test_document_model_template_attribute():
@@ -88,6 +97,15 @@ def test_init_project_templates():
         with open(rec_path_vd, "r") as f:
             rec_data_vd = json.load(f)
         assert rec_data_vd.get("template") == "vd"
+
+        # Test cao init
+        cao_dir = os.path.join(tmpdir, "proj_cao")
+        init_project(cao_dir, template_name="cao")
+        rec_path_cao = os.path.join(cao_dir, "record.json")
+        assert os.path.exists(rec_path_cao)
+        with open(rec_path_cao, "r") as f:
+            rec_data_cao = json.load(f)
+        assert rec_data_cao.get("template") == "cao"
 
 
 def test_render_vd_document():

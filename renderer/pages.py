@@ -36,7 +36,17 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config):
     - centered: EXPERIMENT NO. centered, DATE on left
     - split_top: DATE on top-left, EXPERIMENT NO. on top-right
     """
+    show_header = config.get("experiment_header", "show_header", default=None)
+    if show_header is None:
+        show_header = config.get("experiment_header", "enabled", default=None)
+    if show_header is None:
+        show_header = config.get("header", "show_header", default=True)
+
+    if not show_header:
+        return
+
     canvas_obj.saveState()
+
     
     margin_left = config.margin_left
     margin_top = config.margin_top
@@ -58,42 +68,32 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config):
     exp_y = top_y + exp_offset_y
     date_y = top_y + date_offset_y
 
+    exp_has_num = (exp_number is not None and str(exp_number).strip() != "")
     formatted_type = format_experiment_type(exp_type)
 
-    if layout_style == "split_top":
-        if formatted_type:
-            exp_text = f"EXPERIMENT NO. : {exp_number} ({formatted_type})"
+    if exp_has_num:
+        if layout_style == "split_top":
+            exp_text = f"EXPERIMENT NO. : {exp_number} ({formatted_type})" if formatted_type else f"EXPERIMENT NO. {exp_number}"
         else:
-            exp_text = f"EXPERIMENT NO. {exp_number}"
-
-        # Right-aligned experiment header
-        canvas_obj.setFont(font_name, font_size)
-        right_x = margin_left + printable_w
-        canvas_obj.drawRightString(right_x, exp_y, exp_text)
-
-        # Left-aligned date string
-        if date_str and show_date:
-            date_font = config.get_font("header")
-            date_font_size = float(config.get("font_sizes", "header", default=11))
-            canvas_obj.setFont(date_font, date_font_size)
-            canvas_obj.drawString(margin_left, date_y, f"DATE: {date_str}")
-
+            exp_text = f"EXPERIMENT NO. : {exp_number} ({formatted_type})" if formatted_type else f"EXPERIMENT NO. : {exp_number}"
     else:
-        # centered layout style
-        if formatted_type:
-            exp_text = f"EXPERIMENT NO. : {exp_number} ({formatted_type})"
-        else:
-            exp_text = f"EXPERIMENT NO. : {exp_number}"
+        exp_text = formatted_type if formatted_type else ""
 
+    if exp_text:
         canvas_obj.setFont(font_name, font_size)
-        center_x = margin_left + printable_w / 2.0
-        canvas_obj.drawCentredString(center_x, exp_y, exp_text)
+        if layout_style == "split_top":
+            right_x = margin_left + printable_w
+            canvas_obj.drawRightString(right_x, exp_y, exp_text)
+        else:
+            center_x = margin_left + printable_w / 2.0
+            canvas_obj.drawCentredString(center_x, exp_y, exp_text)
 
-        if date_str and show_date:
-            date_font = config.get_font("header")
-            date_font_size = float(config.get("font_sizes", "header", default=11))
-            canvas_obj.setFont(date_font, date_font_size)
-            canvas_obj.drawString(margin_left, date_y, f"DATE: {date_str}")
+    if date_str and show_date:
+        date_font = config.get_font("header")
+        date_font_size = float(config.get("font_sizes", "header", default=11))
+        canvas_obj.setFont(date_font, date_font_size)
+        canvas_obj.drawString(margin_left, date_y, f"DATE: {date_str}")
+
 
     # Horizontal rule line below header
     if show_rule:
@@ -114,19 +114,24 @@ class SectionHeadingFlowable(Flowable):
     """
     def __init__(self, number, title, config):
         super().__init__()
-        self.number = str(number)
-        self.title = str(title).upper()
+        self.number = str(number).strip() if number is not None else ""
+        self.title = str(title).strip().upper() if title is not None else ""
         self.config = config
 
         self.font_name = config.get_font("heading")
         self.font_size = float(config.get("font_sizes", "section_heading", default=12))
         self.width = config.printable_width
-        self.height = self.font_size * 1.5 + 8
+        self.has_heading = bool(self.number or self.title)
+        self.height = (self.font_size * 1.5 + 8) if self.has_heading else 0
 
     def wrap(self, availWidth, availHeight):
+        if not self.has_heading:
+            return 0, 0
         return self.width, self.height
 
     def draw(self):
+        if not self.has_heading:
+            return
         canv = self.canv
         canv.saveState()
 
