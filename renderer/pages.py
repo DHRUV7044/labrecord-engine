@@ -84,6 +84,11 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config):
         if layout_style == "split_top":
             right_x = margin_left + printable_w
             canvas_obj.drawRightString(right_x, exp_y, exp_text)
+        elif layout_style == "left":
+            canvas_obj.drawString(margin_left, exp_y, exp_text)
+        elif layout_style == "right":
+            right_x = margin_left + printable_w
+            canvas_obj.drawRightString(right_x, exp_y, exp_text)
         else:
             center_x = margin_left + printable_w / 2.0
             canvas_obj.drawCentredString(center_x, exp_y, exp_text)
