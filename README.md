@@ -1,12 +1,36 @@
-LabRecord Engine is a Python-based document typesetting and PDF generation engine specifically designed for engineering laboratory records (e.g. VLSI, Microelectronics, Circuit Design).
+# LabRecord Engine — Publication-Ready A4 Document Typesetting
 
-The engine parses document structure and content written in standard JSON files, applies template styling configurations, handles page flow and breaks, renders LaTeX math expressions and tables, computes image layout trees, and outputs clean, publication-ready A4 PDF files.
+**LabRecord Engine** is a python document typesetting engine designed for engineering laboratory reports (VLSI, Virtuoso, CAO, Microelectronics, and Circuit Design).
+
+It parses document structure and content written in standard JSON files, applies template styling configurations, handles page flow and breaks, renders LaTeX math expressions and tables, computes image layout trees, formats source code files, evaluates automatic table calculations, and outputs clean, publication-ready A4 PDF files.
 
 ---
 
-## 1. Installation
+## Documentation Index
 
-Install the package and the `labfile` command line tool:
+Explore detailed component references, parameter lists, and usage guides:
+
+- 📖 **[CLI User Guide (`docs/cli.md`)](docs/cli.md)** — Complete command reference (`init`, `generate`, `scan`, `csv`, `templates`).
+- 📋 **[Document JSON Schema & Components (`docs/document_schema.md`)](docs/document_schema.md)** — Section components (`text`, `code`, `table`, `image`), parameters, and layout trees.
+- 📊 **[Tables, CSV Imports & Calculations (`docs/tables_and_calculations.md`)](docs/tables_and_calculations.md)** — Row/Column tables, CSV imports, relative cell references, and arithmetic functions (`$avg`, `$perr`).
+- 💻 **[Code Sections & File Imports (`docs/code_sections.md`)](docs/code_sections.md)** — Importing Verilog/VHDL/Python code files, line numbers, language badges, and styling.
+- 🎨 **[Configuration, Styling & Built-in Templates (`docs/configuration_and_templates.md`)](docs/configuration_and_templates.md)** — `config.json` parameters, header toggles, and built-in templates (`default`, `vd`, `cao`).
+
+---
+
+## Key Features
+
+- ⚡ **Multi-Template Architecture**: Select between built-in templates (`default`, `vd`, `cao`) or create custom templates.
+- 💻 **Code Import Section**: Directly render Verilog, VHDL, Python, C++, and Spice code files (`"type": "code"`) with monospace styling, line numbers, and language header badges.
+- 📊 **CSV File Importing & Comma Shorthands**: Render CSV files (`"csv": "data.csv"`) or write comma-separated shorthand rows directly into tables.
+- 🧮 **Automated Table Calculations**: Perform cell arithmetic (`r1e1 - r2e2`), relative references (`re1`, `ce2`), and use built-in functions (`$avg(...)`, `$perr(...)`).
+- 🖼️ **Aspect-Ratio Image Layout Engine**: Flexible column, row, grid, and freebox image positioning with rotation and scaling.
+- 📐 **LaTeX Math Support**: Inline (`$...$`) and display (`$$...$$`) mathematical typesetting.
+- ⚙️ **Configurable Headers & Top Margins**: Hide top experiment headers (`"show_header": false`) with dynamic top margin adjustment.
+
+---
+
+## 1. Quick Start Installation
 
 ```bash
 # Clone the repository
@@ -27,163 +51,106 @@ labfile --help
 
 ---
 
-## 2. CLI Usage (`labfile`)
-
-The `labfile` CLI executable provides project initialization, template listing, PDF generation, and image scanning commands:
+## 2. Quick Command Reference
 
 ```bash
-LabRecord Engine — PDF Typesetting & Build CLI
+# Initialize a new project with the CAO template
+labfile init --template cao
 
-Commands:
-  init       Initialize a LabRecord project
-  generate   Generate PDFs from main.json
-  scan       Scan directory for images and add them to document JSON
-  templates  List available document templates
-```
+# Initialize and scan an image folder
+labfile init --scan screenshots/ -t vd
 
----
+# Import a CSV file into record.json
+labfile csv measurements.csv --title "DC Sweep Results"
 
-## 3. Template System
+# Generate publication-ready PDFs from main.json
+labfile generate
 
-LabRecord Engine includes a configuration-driven template architecture. Built-in templates:
-
-1. **`default`**: Standard document formatting layout.
-2. **`vd`**: Lab record format reproducing VD laboratory record reference structure with split top experiment header (`DATE` left, `EXPERIMENT NO.` right) and section-resetting table (`Table 4.1`) and figure (`Figure 6.1`) numbering.
-
-### Listing Available Templates
-```bash
+# List all available built-in templates
 labfile templates
 ```
 
-### Template vs. Document Content
-- **Template (`templates/<name>/template.json`)**: Controls **HOW** the document is rendered (page margins, fonts, font sizes, experiment header layout, section heading styles, table numbering style, figure caption format, spacing).
-- **Document JSON (`record.json`)**: Controls **WHAT** the document contains (experiment number, type, date, section titles like `AIM`, `THEORY`, `TABLE`, `CALCULATION`, `RESULT`, text paragraphs, LaTeX formulas, table data, image layouts).
-
-Templates **do NOT** contain hardcoded section content or experiment titles.
-
-### Specifying Template in Document JSON
-```json
-{
-    "template": "vd",
-    "document": {
-        "title": "ENGINEERING LAB RECORD",
-        "date": "13/08/2026"
-    },
-    "images": [ ... ],
-    "experiments": [ ... ]
-}
-```
-If `"template"` is omitted, `"default"` is used automatically as fallback.
-
 ---
 
-## 4. Project Initialization (`labfile init`)
-
-To create a new LabRecord Engine project:
-
-```bash
-# Basic initialization using default template
-labfile init
-
-# Initialize project using VD template
-labfile init -t vd
-# or:
-labfile init --template vd
-
-# Specify a target directory
-labfile init /path/to/my_project -t vd
-
-# Initialize and automatically scan a directory for images
-labfile init --scan screenshots/ -t vd
-```
-
-Default files created:
-- `main.json` (Build manifest)
-- `config.json` (Optional user styling overrides)
-- `record.json` (Document content & global image registry configured with chosen template)
-- `output/` (Directory for generated PDFs)
-
----
-
-## 5. Image Registry & Layout Engine (`labfile scan`)
-
-Images are declared in the top-level `images` array (Global Image Registry) and referenced by unique ID in section layout nodes:
+## 3. Quick JSON Example (`record.json`)
 
 ```json
 {
-    "images": [
+  "template": "cao",
+  "document": {
+    "title": "COMPUTER ARCHITECTURE & ORGANIZATION LAB RECORD"
+  },
+  "images": [
+    {
+      "id": "schematic",
+      "path": "design.png",
+      "title": "RTL Schematic"
+    }
+  ],
+  "experiments": [
+    {
+      "title": "Ripple Carry Adder (RCA) Design",
+      "sections": [
         {
-            "id": "schematic",
-            "path": "../cadence/schematic.png",
-            "title": "CMOS Inverter Schematic"
+          "type": "text",
+          "title": "AIM",
+          "text": "To design an 8-bit Ripple Carry Adder using VHDL and verify switching threshold $V_{TH}$."
+        },
+        {
+          "type": "code",
+          "title": "VHDL Design Code",
+          "file": "rtl/rca8.vhd",
+          "language": "VHDL"
+        },
+        {
+          "type": "table",
+          "title": "Experimental Measurements",
+          "csv": "data/results.csv"
+        },
+        {
+          "type": "image",
+          "title": "RTL Schematic Layout",
+          "subsections": [
+            {
+              "title": "Circuit Layout",
+              "layout": {
+                "type": "column",
+                "elements": ["schematic"]
+              }
+            }
+          ]
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
-Scan any directory for images and automatically add them to `record.json`:
-
-```bash
-labfile scan screenshots/ -r record.json
-```
-
 ---
 
-## 6. Generating PDFs (`labfile generate`)
-
-Run generation from inside a project directory or from **any arbitrary directory**:
-
-```bash
-# Generate PDFs using project in current directory
-labfile generate
-
-# Generate PDFs using explicit manifest path
-labfile generate /path/to/my_project/main.json
-```
-
----
-
-## 7. Directory Structure
+## Directory Structure
 
 ```text
 labrecord-engine/
 ├── labfile               # Executable CLI launcher script
-├── generate.py           # Legacy script wrapper
 ├── main.json             # Multi-job build manifest
 ├── config.json           # Styling configuration defaults
 ├── Makefile              # Build automation & test runner
-├── README.md             # Documentation
-├── pyproject.toml        # Python package metadata
+├── README.md             # Main overview & quick start index
+│
+├── docs/                 # Detailed User Guides
+│   ├── cli.md                        # CLI reference
+│   ├── document_schema.md            # Document JSON schema & section components
+│   ├── tables_and_calculations.md    # Tables, CSV import & expression engine
+│   ├── code_sections.md              # Code section & file import parameters
+│   └── configuration_and_templates.md# Config parameters & template guide
 │
 ├── templates/            # Built-in document templates
-│   ├── default/
-│   │   └── template.json # Default template configuration
-│   └── vd/
-│       └── template.json # VD lab record template configuration
+│   ├── default/          # Default template configuration
+│   ├── vd/               # VD lab record template configuration
+│   └── cao/              # CAO lab record template configuration
 │
-├── schema/
-│   └── lab_schema.json   # Document JSON schema specification
-│
-├── renderer/
-│   ├── __init__.py
-│   ├── cli.py            # CLI entry point (init, generate, scan, templates)
-│   ├── template_loader.py# Shared template loader & validator
-│   ├── scanner.py        # Image directory scanner & registry merger
-│   ├── templates.py      # Project template generator (init)
-│   ├── config.py         # Configuration loader & margin calculations
-│   ├── document.py       # Document models & Global Image Registry
-│   ├── layout.py         # Aspect-ratio space distribution & recursive layout
-│   ├── pages.py          # Top experiment header & section headings
-│   ├── text.py           # Paragraph builder & LaTeX mathtext parser
-│   ├── tables.py         # Table flowables (Row & Column modes)
-│   ├── images.py         # Pillow image reader, rotation, scaling & drawing
-│   └── pdf.py            # ReportLab document compiler
-│
-├── labs/
-│   ├── example_lab.json     # Reference default lab JSON
-│   └── vd_example_lab.json  # Reference VD lab JSON
-│
-├── tests/                # Comprehensive regression test suite
-└── output/               # Directory where generated PDFs are stored
+├── renderer/             # Core typesetting & compiling engine
+├── labs/                 # Example reference lab JSON documents
+└── tests/                # Comprehensive regression test suite
 ```
-

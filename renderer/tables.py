@@ -311,28 +311,27 @@ def evaluate_single_cell_content(cell_text, matrix, curr_r, curr_c, cache, visit
 
     text = cell_text.strip()
 
-    # Case 1: Wrapped in $...$ e.g. "$perr(re1, re2)$"
-    if text.startswith('$') and text.endswith('$') and len(text) > 2:
-        inner = text[1:-1].strip()
-        is_perr = 'perr' in inner.lower()
-        eval_inner = replace_references_in_expr(inner, matrix, curr_r, curr_c, cache, visited)
-        return parse_and_eval_math_expr(eval_inner, is_perr=is_perr)
-
-    # Case 2: Starts with = e.g. "=r1e1 - r2e2"
+    # Strip wrapping braces / equals / dollar signs if it contains a formula function or cell reference
     if text.startswith('='):
-        inner = text[1:].strip()
-        is_perr = 'perr' in inner.lower()
-        eval_inner = replace_references_in_expr(inner, matrix, curr_r, curr_c, cache, visited)
-        return parse_and_eval_math_expr(eval_inner, is_perr=is_perr)
-
-    # Case 3: Wrapped in {...} e.g. "{re1 - re2}"
+        text = text[1:].strip()
     if text.startswith('{') and text.endswith('}'):
-        inner = text[1:-1].strip()
-        is_perr = 'perr' in inner.lower()
-        eval_inner = replace_references_in_expr(inner, matrix, curr_r, curr_c, cache, visited)
-        return parse_and_eval_math_expr(eval_inner, is_perr=is_perr)
+        text = text[1:-1].strip()
+    if text.startswith('$') and text.endswith('$') and len(text) > 2:
+        text = text[1:-1].strip()
+    elif text.startswith('$') and re.search(r'^\$(?:perr|avg|mean|sum|min|max|abs|\(|re\d|rc\d|ce\d|cr\d|r\d+e\d|c\d+e\d)', text, re.IGNORECASE):
+        text = text[1:].strip()
 
-    # Case 4: Unwrapped expression cell e.g. "re1 - re2" or "avg(re1, re2)"
+    # Auto-fix missing commas inside function arguments e.g. "perr(re2  re3)" or "avg(re1 re2 re3)"
+    def fix_func_commas(expr):
+        def replace_args(m):
+            func_name = m.group(1)
+            args_str = m.group(2)
+            tokens = [t.strip() for t in re.split(r'[\s,]+', args_str) if t.strip()]
+            return func_name + "(" + ", ".join(tokens) + ")"
+        return re.sub(r'\b(perr|avg|mean|sum|min|max|abs)\s*\(([^)]+)\)', replace_args, expr, flags=re.IGNORECASE)
+
+    text = fix_func_commas(text)
+
     is_perr = 'perr' in text.lower()
     eval_text = replace_references_in_expr(text, matrix, curr_r, curr_c, cache, visited)
     return parse_and_eval_math_expr(eval_text, is_perr=is_perr)
