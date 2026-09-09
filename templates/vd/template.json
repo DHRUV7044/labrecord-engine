@@ -2,11 +2,11 @@
   "name": "vd",
   "page": {
     "size": "A4",
-    "margin_mm": {
-      "top": 18,
-      "bottom": 18,
-      "left": 20,
-      "right": 20
+    "margin": {
+      "top": 20,
+      "bottom": 20,
+      "left": 22,
+      "right": 22
     }
   },
   "fonts": {
@@ -27,17 +27,19 @@
     "caption": 10
   },
   "experiment_header": {
-    "layout_style": "split_top",
     "font_size": 14,
-    "exp_no_offset_y": 4,
-    "date_offset_y": 4,
+    "exp_no_offset_y": 8,
+    "date_offset_y": -2,
     "rule_offset_y": -6,
-    "spacing_after": 15,
+    "spacing_after": 20,
     "show_date": true,
-    "show_rule": true
+    "show_rule": true,
+    "layout_style": "centered"
   },
-  "section": {
-    "number_format": "{number}. {title}"
+  "paragraph": {
+    "line_spacing": 1.25,
+    "spacing_after": 6,
+    "spacing_before": 0
   },
   "table": {
     "number_format": "Table {section_num}.{table_num}: {title}",
@@ -54,9 +56,13 @@
     "numbering_style": "section_based"
   },
   "image": {
-    "default_gap": 6,
+    "default_gap": 5,
     "caption_font_size": 10,
     "caption_spacing": 4,
     "alignment": "center"
+  },
+  "header": {
+    "show_header": true,
+    "rule": true
   }
 }

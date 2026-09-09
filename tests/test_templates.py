@@ -38,7 +38,7 @@ def test_load_template_vd():
     assert data["name"] == "vd"
     assert "page" in data
     assert "experiment_header" in data
-    assert data["experiment_header"]["layout_style"] == "split_top"
+    assert data["experiment_header"]["layout_style"] == "centered"
     assert data["table"]["numbering_style"] == "section_based"
     assert data["figure"]["numbering_style"] == "section_based"
 
