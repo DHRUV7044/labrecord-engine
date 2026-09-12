@@ -593,21 +593,21 @@ SIT_SW_RECORD_JSON = {
                             "title": "layout",
                             "layout": {
                                 "type": "column",
-                                "elements": [1, 2]
+                                "elements": []
                             }
                         },
                         {
                             "title": "process outputs",
                             "layout": {
                                 "type": "3x3",
-                                "elements": [3, 4, 5, 6, 7, 8, 9, 10, 11]
+                                "elements": []
                             }
                         },
                         {
                             "title": "process outputs",
                             "layout": {
                                 "type": "column",
-                                "elements": [12, 13]
+                                "elements": []
                             }
                         }
                     ]
