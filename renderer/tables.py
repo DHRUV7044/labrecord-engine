@@ -402,8 +402,21 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
             r_copy.append("")
         norm_matrix.append(r_copy)
 
-    # Styles
-    cell_font_size = config.get("font_sizes", "table_cell", default=10)
+    # Styles & Auto-scaling for wide tables
+    base_font_size = float(config.get("font_sizes", "table_cell", default=10))
+    if num_cols > 10:
+        cell_font_size = max(6.5, base_font_size - 3.0)
+        padding_h = 2
+        padding_v = 2
+    elif num_cols > 7:
+        cell_font_size = max(7.5, base_font_size - 2.0)
+        padding_h = 3
+        padding_v = 3
+    else:
+        cell_font_size = base_font_size
+        padding_h = 6
+        padding_v = 5
+
     font_body = config.get_font("body")
     font_bold = config.get_font("heading")
 
@@ -411,7 +424,7 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
         'TableHeader',
         fontName=font_bold,
         fontSize=cell_font_size,
-        leading=cell_font_size * 1.2,
+        leading=cell_font_size * 1.15,
         alignment=0
     )
 
@@ -419,7 +432,7 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
         'TableCell',
         fontName=font_body,
         fontSize=cell_font_size,
-        leading=cell_font_size * 1.2,
+        leading=cell_font_size * 1.15,
         alignment=0
     )
 
@@ -445,10 +458,10 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
         ('BOX', (0, 0), (-1, -1), 0.75, colors.black),
         ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), padding_v),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), padding_v),
+        ('LEFTPADDING', (0, 0), (-1, -1), padding_h),
+        ('RIGHTPADDING', (0, 0), (-1, -1), padding_h),
     ])
 
     rl_table = RLTable(flowable_matrix, colWidths=col_widths, repeatRows=1)

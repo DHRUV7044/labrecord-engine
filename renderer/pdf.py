@@ -2,7 +2,7 @@ import os
 import json
 import sys
 
-from reportlab.platypus import SimpleDocTemplate, PageBreak, Spacer, Paragraph
+from reportlab.platypus import SimpleDocTemplate, PageBreak, Spacer, Paragraph, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
@@ -122,25 +122,32 @@ def generate_document_pdf(doc_model, output_path, config=None):
                 story.append(PageBreak())
 
             # Section Heading
-            story.append(SectionHeadingFlowable(sec.number, sec.title, config))
-            story.append(Spacer(1, 8))
+            sec_heading = SectionHeadingFlowable(sec.number, sec.title, config)
 
             # Render Section Content
             if sec.type == "text":
+                story.append(sec_heading)
+                story.append(Spacer(1, 8))
                 for para_text in sec.paragraphs:
                     p_flowable = create_paragraph(para_text, body_style, font_size=body_font_size)
                     story.append(p_flowable)
                 story.append(Spacer(1, 4))
 
             elif sec.type == "table":
+                all_tbl_flowables = []
                 for tbl in sec.tables:
                     tbl_idx = sec_tbl_counter if numbering_style_table == "section_based" else seq_tbl_counter
                     t_flowables = create_table_flowable(tbl, config, section_num=sec.number, table_index=tbl_idx)
-                    story.extend(t_flowables)
+                    all_tbl_flowables.extend(t_flowables)
                     if numbering_style_table == "section_based":
                         sec_tbl_counter += 1
                     else:
                         seq_tbl_counter += 1
+                if all_tbl_flowables:
+                    story.append(KeepTogether([sec_heading, Spacer(1, 8)] + all_tbl_flowables))
+                else:
+                    story.append(sec_heading)
+                    story.append(Spacer(1, 8))
                 story.append(Spacer(1, 4))
 
             elif sec.type == "image":
@@ -169,6 +176,8 @@ def generate_document_pdf(doc_model, output_path, config=None):
                 story.append(Spacer(1, 4))
 
             elif sec.type == "code":
+                story.append(sec_heading)
+                story.append(Spacer(1, 8))
                 code_flowables = create_code_flowable(sec, config)
                 story.extend(code_flowables)
 

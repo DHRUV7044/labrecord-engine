@@ -204,6 +204,7 @@ class SectionHeadingFlowable(Flowable):
         self.width = config.printable_width
         self.has_heading = bool(self.number or self.title)
         self.height = (self.font_size * 1.5 + 8) if self.has_heading else 0
+        self.keepWithNext = True
 
     def wrap(self, availWidth, availHeight):
         if not self.has_heading:
