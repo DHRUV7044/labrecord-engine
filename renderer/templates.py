@@ -558,10 +558,62 @@ SIT_SW_RECORD_JSON = {
                     ]
                 },
                 {
-                    "type": "text",
+                    "type": "code",
                     "number": 3,
+                    "title": "SOURCE CODE",
+                    "language": "Java",
+                    "code": [
+                        "public class SystemModel {",
+                        "    public static void main(String[] args) {",
+                        "        System.out.println(\"SIT Software Engineering Model\");",
+                        "    }",
+                        "}"
+                    ]
+                },
+                {
+                    "type": "table",
+                    "number": 4,
+                    "title": "SYSTEM SPECIFICATIONS",
+                    "element_type": "column",
+                    "elements": [
+                        {
+                            "title": "Component",
+                            "entries": ["Frontend", "Backend", "Database", "OS"]
+                        },
+                        {
+                            "title": "Specification",
+                            "entries": ["React", "Spring Boot", "PostgreSQL", "Linux"]
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "number": 5,
+                    "title": "CALCULATION",
+                    "text": [
+                        "Cyclomatic Complexity $V(G) = E - N + 2P$",
+                        "For control flow graph with $E=10$ edges and $N=8$ nodes: $V(G) = 10 - 8 + 2 = 4$"
+                    ]
+                },
+                {
+                    "type": "image",
+                    "number": 6,
+                    "title": "DIAGRAMS & OUTPUTS",
+                    "new_page": True,
+                    "subsections": [
+                        {
+                            "layout": {
+                                "type": "column",
+                                "elements": [1, 2]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "number": 7,
                     "title": "RESULT",
-                    "text": "The SRS document and system design diagrams were successfully created and verified."
+                    "text": "The software design models and implementation were successfully created and verified."
                 }
             ]
         }
