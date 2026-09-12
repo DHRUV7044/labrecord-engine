@@ -176,11 +176,15 @@ def handle_pptx(args):
             title=args.title,
             grid=args.grid,
             image_dir=args.outdir,
-            force=args.force
+            force=args.force,
+            no_section=args.no_section
         )
         print(f"Successfully extracted {count} image(s) from '{args.pptx_file}' into {args.record}")
-        print(f"  Title: {sec.get('title')}")
-        print(f"  Grid : {args.grid}")
+        if sec:
+            print(f"  Title: {sec.get('title')}")
+            print(f"  Grid : {args.grid}")
+        else:
+            print(f"  Section: Skipped (--no-section / --register-only)")
         print(f"  Pages: {args.pages if args.pages else 'All slides'}")
         print()
 
@@ -510,6 +514,12 @@ def main():
         "-f", "--force",
         action="store_true",
         help="Overwrite existing images with matching IDs"
+    )
+    pptx_parser.add_argument(
+        "--no-section", "--register-only", "--list-only",
+        action="store_true",
+        dest="no_section",
+        help="Extract and register images in the 'images' list of record.json without adding a new section"
     )
 
     # blank command

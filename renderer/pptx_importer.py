@@ -158,10 +158,11 @@ def extract_pptx_images(pptx_path, target_image_dir, page_numbers=None):
     return extracted_images
 
 
-def add_pptx_to_record(pptx_path, record_json_path="record.json", page_numbers=None, title=None, grid="1x1", image_dir="images", force=False):
+def add_pptx_to_record(pptx_path, record_json_path="record.json", page_numbers=None, title=None, grid="1x1", image_dir="images", force=False, no_section=False):
     """
     Extracts images from PPTX slides, registers them in record.json,
-    and appends an image section formatted with the specified grid size (e.g. '2x2', '3x5', '1x2', etc.).
+    and optionally appends an image section formatted with the specified grid size.
+    If no_section is True, only registers the images in record.json without adding a section.
     """
     if not os.path.exists(record_json_path):
         raise FileNotFoundError(f"Target document JSON file not found: {record_json_path}")
@@ -214,48 +215,50 @@ def add_pptx_to_record(pptx_path, record_json_path="record.json", page_numbers=N
             existing_ids[img_id_str] = img_entry
         new_img_ids.append(img_id_int)
 
-    # Determine items per page based on grid specification (e.g., '2x2', '3x5')
-    grid_str = str(grid).strip()
-    grid_match = re.match(r"^(\d+)x(\d+)$", grid_str.lower())
-    if grid_match:
-        per_page = int(grid_match.group(1)) * int(grid_match.group(2))
-    else:
-        per_page = 1
-        grid_str = "1x1"
+    new_section = None
+    if not no_section:
+        # Determine items per page based on grid specification (e.g., '2x2', '3x5')
+        grid_str = str(grid).strip()
+        grid_match = re.match(r"^(\d+)x(\d+)$", grid_str.lower())
+        if grid_match:
+            per_page = int(grid_match.group(1)) * int(grid_match.group(2))
+        else:
+            per_page = 1
+            grid_str = "1x1"
 
-    # Build image subsections
-    subsections = []
-    page_counter = 1
-    for i in range(0, len(new_img_ids), per_page):
-        chunk = new_img_ids[i:i + per_page]
-        subsections.append({
-            "title": f"Page {page_counter}",
-            "layout": {
-                "type": grid_str,
-                "elements": chunk
-            }
-        })
-        page_counter += 1
+        # Build image subsections
+        subsections = []
+        page_counter = 1
+        for i in range(0, len(new_img_ids), per_page):
+            chunk = new_img_ids[i:i + per_page]
+            subsections.append({
+                "title": f"Page {page_counter}",
+                "layout": {
+                    "type": grid_str,
+                    "elements": chunk
+                }
+            })
+            page_counter += 1
 
-    pptx_base = os.path.splitext(os.path.basename(pptx_path))[0]
-    sec_title = title if title else f"PPTX Import ({pptx_base})"
+        pptx_base = os.path.splitext(os.path.basename(pptx_path))[0]
+        sec_title = title if title else f"PPTX Import ({pptx_base})"
 
-    new_section = {
-        "type": "image",
-        "title": sec_title,
-        "new_page": True,
-        "subsections": subsections
-    }
+        new_section = {
+            "type": "image",
+            "title": sec_title,
+            "new_page": True,
+            "subsections": subsections
+        }
 
-    experiments = record_data.setdefault("experiments", [])
-    if not experiments:
-        experiments.append({
-            "number": 1,
-            "title": "Lab Experiment",
-            "sections": []
-        })
+        experiments = record_data.setdefault("experiments", [])
+        if not experiments:
+            experiments.append({
+                "number": 1,
+                "title": "Lab Experiment",
+                "sections": []
+            })
 
-    experiments[0].setdefault("sections", []).append(new_section)
+        experiments[0].setdefault("sections", []).append(new_section)
 
     with open(record_json_path, "w", encoding="utf-8") as f:
         json.dump(record_data, f, indent=4)
