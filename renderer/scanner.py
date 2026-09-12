@@ -14,14 +14,18 @@ def sanitize_id(filename):
     return clean_name if clean_name else "image"
 
 
-def format_title(filename):
+def format_title(filename, counter_idx=1):
     """
-    Generates a human-readable title from a filename.
-    e.g. 'cmos_inverter_layout.png' -> 'Cmos Inverter Layout'
+    Generates a concise, short title for an image file.
+    If the filename is a short clean name (<= 15 chars), formats it cleanly.
+    Otherwise, returns a simple sequential number string '1', '2', '3', etc.
     """
     name_without_ext = os.path.splitext(filename)[0]
     words = re.sub(r'[^a-zA-Z0-9]+', ' ', name_without_ext).split()
-    return ' '.join(word.capitalize() for word in words) if words else name_without_ext
+    formatted = ' '.join(word.capitalize() for word in words) if words else name_without_ext
+    if len(formatted) <= 15 and formatted:
+        return formatted
+    return str(counter_idx)
 
 
 def scan_images(image_dir=".", record_json_path="record.json", recursive=False, use_abs=False, force=False):
@@ -79,7 +83,7 @@ def scan_images(image_dir=".", record_json_path="record.json", recursive=False, 
     added = []
     skipped = []
 
-    for img_file in found_files:
+    for scan_idx, img_file in enumerate(found_files, start=1):
         filename = os.path.basename(img_file)
         base_id = sanitize_id(filename)
 
@@ -107,7 +111,7 @@ def scan_images(image_dir=".", record_json_path="record.json", recursive=False, 
         img_entry = {
             "id": final_id,
             "path": img_path_str,
-            "title": format_title(filename)
+            "title": format_title(filename, counter_idx=scan_idx)
         }
 
         if final_id in existing_ids and force:

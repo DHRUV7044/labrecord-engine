@@ -185,13 +185,13 @@ def add_pptx_to_record(pptx_path, record_json_path="record.json", page_numbers=N
     existing_ids = {img.get("id"): img for img in existing_images if isinstance(img, dict)}
 
     new_img_ids = []
-    for item in extracted:
+    for count, item in enumerate(extracted, start=1):
         img_id = item["id"]
         rel_path = os.path.join(image_dir, os.path.basename(item["path"])) if image_dir else item["path"]
         img_entry = {
             "id": img_id,
             "path": rel_path,
-            "title": item["title"]
+            "title": str(count)
         }
         if img_id not in existing_ids or force:
             if img_id in existing_ids:
