@@ -1,0 +1,81 @@
+{
+  "name": "sit_sw",
+  "page": {
+    "size": "A4",
+    "margin": {
+      "top": 20,
+      "bottom": 20,
+      "left": 22,
+      "right": 22
+    }
+  },
+  "fonts": {
+    "body": "Times-Roman",
+    "heading": "Helvetica-Bold",
+    "title": "Helvetica-Bold",
+    "caption": "Helvetica-Bold",
+    "header": "Helvetica-Bold",
+    "code": "Courier"
+  },
+  "font_sizes": {
+    "header": 11,
+    "experiment_title": 14,
+    "section_heading": 12,
+    "body": 11,
+    "table_cell": 10,
+    "table_header": 10,
+    "caption": 10,
+    "code": 9
+  },
+  "experiment_header": {
+    "font_size": 14,
+    "student_offset_y": 8,
+    "exp_no_offset_y": 8,
+    "date_offset_y": -2,
+    "rule_offset_y": -6,
+    "spacing_after": 20,
+    "show_date": true,
+    "show_rule": true,
+    "layout_style": "centered"
+  },
+  "paragraph": {
+    "line_spacing": 1.25,
+    "spacing_after": 6,
+    "spacing_before": 0
+  },
+  "table": {
+    "number_format": "Table {table_num}: {title}",
+    "numbering_style": "sequential",
+    "font_size": 10,
+    "border_width": 0.5,
+    "cell_padding": 5,
+    "header_bold": true,
+    "header_background": "#ffffff",
+    "spacing_after": 10
+  },
+  "figure": {
+    "number_format": "Figure {figure_num}: {title}",
+    "numbering_style": "sequential"
+  },
+  "image": {
+    "default_gap": 5,
+    "caption_font_size": 10,
+    "caption_spacing": 4,
+    "alignment": "center"
+  },
+  "code": {
+    "font": "Courier",
+    "font_size": 9,
+    "line_spacing": 1.2,
+    "background_color": "#f8f9fa",
+    "header_background": "#eaeded",
+    "border_color": "#cccccc",
+    "line_number_color": "#888888",
+    "show_line_numbers": true,
+    "spacing_after": 10
+  },
+  "header": {
+    "show_header": true,
+    "rule": true
+  }
+}

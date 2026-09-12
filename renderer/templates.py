@@ -529,6 +529,43 @@ CAO_RECORD_JSON = {
     ]
 }
 
+SIT_SW_RECORD_JSON = {
+    "template": "sit_sw",
+    "document": {
+        "title": "SOFTWARE ENGINEERING LAB RECORD"
+    },
+    "images": [],
+    "experiments": [
+        {
+            "number": 1,
+            "title": "Software Requirements Specification & System Design",
+            "sections": [
+                {
+                    "type": "text",
+                    "number": 1,
+                    "title": "AIM",
+                    "text": "To develop Software Requirements Specification (SRS) and design architectural models for the system."
+                },
+                {
+                    "type": "text",
+                    "number": 2,
+                    "title": "THEORY",
+                    "text": [
+                        "Software engineering involves applying systematic techniques to software analysis, design, testing, and maintenance.",
+                        "UML diagrams including Use Case, Class, Sequence, and Activity diagrams model functional requirements and behavior."
+                    ]
+                },
+                {
+                    "type": "text",
+                    "number": 3,
+                    "title": "RESULT",
+                    "text": "The SRS document and system design diagrams were successfully created and verified."
+                }
+            ]
+        }
+    ]
+}
+
 TEMPLATES = {
     "default": {
         "main.json": DEFAULT_MAIN_JSON,
@@ -544,6 +581,16 @@ TEMPLATES = {
         "main.json": DEFAULT_MAIN_JSON,
         "config.json": DEFAULT_CONFIG_JSON,
         "record.json": CAO_RECORD_JSON
+    },
+    "sit_sw": {
+        "main.json": DEFAULT_MAIN_JSON,
+        "config.json": DEFAULT_CONFIG_JSON,
+        "record.json": SIT_SW_RECORD_JSON
+    },
+    "sitsw": {
+        "main.json": DEFAULT_MAIN_JSON,
+        "config.json": DEFAULT_CONFIG_JSON,
+        "record.json": SIT_SW_RECORD_JSON
     }
 }
 
