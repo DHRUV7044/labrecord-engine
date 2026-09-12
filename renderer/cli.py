@@ -7,6 +7,7 @@ from .templates import init_project
 from .scanner import scan_images
 from .csv_importer import add_csv_to_record
 from .updater import update_project
+from .pptx_importer import add_pptx_to_record
 
 VERSION = "1.0.0"
 
@@ -157,6 +158,33 @@ def handle_update(args):
 
     except Exception as e:
         print(f"ERROR: Update failed: {e}")
+        sys.exit(1)
+
+
+def handle_pptx(args):
+    print("========================================")
+    print("LabRecord Engine — PPTX Slide Importer")
+    print("========================================")
+    print()
+
+    try:
+        sec, count = add_pptx_to_record(
+            pptx_path=args.pptx_file,
+            record_json_path=args.record,
+            page_numbers=args.pages,
+            title=args.title,
+            grid=args.grid,
+            image_dir=args.outdir,
+            force=args.force
+        )
+        print(f"Successfully extracted {count} image(s) from '{args.pptx_file}' into {args.record}")
+        print(f"  Title: {sec.get('title')}")
+        print(f"  Grid : {args.grid}")
+        print(f"  Pages: {args.pages if args.pages else 'All slides'}")
+        print()
+
+    except Exception as e:
+        print(f"ERROR: PPTX import failed: {e}")
         sys.exit(1)
 
 
@@ -405,6 +433,48 @@ def main():
         help="Directory containing project JSON files to update (default: current directory)"
     )
 
+    # pptx command
+    pptx_parser = subparsers.add_parser(
+        "pptx",
+        help="Import slides/images from a PowerPoint (.pptx) file",
+        description="Extracts images from specific slides of a .pptx file and creates grid-formatted image sections in record.json."
+    )
+    pptx_parser.add_argument(
+        "pptx_file",
+        help="Path to .pptx presentation file to import"
+    )
+    pptx_parser.add_argument(
+        "-r", "--record",
+        default="record.json",
+        help="Target document JSON file to update (default: 'record.json')"
+    )
+    pptx_parser.add_argument(
+        "-p", "--pages", "--slides",
+        default=None,
+        dest="pages",
+        help="Specific slide page numbers or ranges to import (e.g. '2', '1,3-5', '2,4-6')"
+    )
+    pptx_parser.add_argument(
+        "-t", "--title",
+        default=None,
+        help="Optional title for the image section"
+    )
+    pptx_parser.add_argument(
+        "-g", "--grid",
+        default="1x1",
+        help="Grid dimensions for subsection layouts (e.g. '2x2', '3x5', '1x2', '2x3', '3x3')"
+    )
+    pptx_parser.add_argument(
+        "-d", "--outdir",
+        default="images",
+        help="Directory where extracted slide images will be saved (default: 'images')"
+    )
+    pptx_parser.add_argument(
+        "-f", "--force",
+        action="store_true",
+        help="Overwrite existing images with matching IDs"
+    )
+
     # templates command
     templates_parser = subparsers.add_parser(
         "templates",
@@ -418,6 +488,8 @@ def main():
         handle_init(args)
     elif args.command == "update":
         handle_update(args)
+    elif args.command == "pptx":
+        handle_pptx(args)
     elif args.command == "generate":
         handle_generate(args)
     elif args.command == "scan":

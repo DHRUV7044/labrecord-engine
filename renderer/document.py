@@ -69,6 +69,8 @@ class TableObject:
 
 
 
+import re
+
 class LayoutNode:
     def __init__(self, data):
         if isinstance(data, str):
@@ -76,8 +78,36 @@ class LayoutNode:
             self.image_id = data
             self.children = []
         elif isinstance(data, dict):
-            self.node_type = data.get("type", "row").lower()
-            if self.node_type == "freebox":
+            raw_type = str(data.get("type", "row")).lower()
+
+            grid_match = re.match(r"^(\d+)x(\d+)$", raw_type)
+            if raw_type == "grid" or grid_match or ("rows" in data and "cols" in data):
+                self.node_type = "column"
+                self.image_id = None
+
+                if grid_match:
+                    rows_cnt = int(grid_match.group(1))
+                    cols_cnt = int(grid_match.group(2))
+                else:
+                    rows_cnt = int(data.get("rows", 1))
+                    cols_cnt = int(data.get("cols", 1))
+
+                raw_elements = data.get("elements", [])
+                row_nodes = []
+                for r in range(rows_cnt):
+                    start_idx = r * cols_cnt
+                    end_idx = min(start_idx + cols_cnt, len(raw_elements))
+                    row_elems = raw_elements[start_idx:end_idx]
+                    if row_elems:
+                        row_dict = {
+                            "type": "row",
+                            "elements": row_elems
+                        }
+                        row_nodes.append(LayoutNode(row_dict))
+                self.children = row_nodes
+
+            elif raw_type == "freebox":
+                self.node_type = "freebox"
                 self.image_id = data.get("image")
                 if isinstance(self.image_id, dict):
                     self.image_id = self.image_id.get("id") or self.image_id.get("path")
@@ -85,6 +115,7 @@ class LayoutNode:
                 self.size = data.get("size", {"width": 100, "height": 100})
                 self.children = []
             else:
+                self.node_type = raw_type
                 self.image_id = None
                 self.children = [LayoutNode(c) for c in data.get("elements", [])]
         else:

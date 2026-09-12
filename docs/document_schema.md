@@ -234,11 +234,14 @@ Used for placing schematics, waveforms, and layout screenshots with aspect-ratio
 | `"title"` | `string` | `""` | Figure caption text. |
 | `"rotation"` | `integer` | `0` | Image rotation angle in degrees (`0`, `90`, `180`, `270`). |
 
-#### Layout Node Types
+#### Layout Types
 
-| Node Type | Description |
+| Layout Type | Description |
 | :--- | :--- |
-| `"column"` | Stacks child elements vertically. |
-| `"row"` | Places child elements side-by-side horizontally. |
-| `"ref"` / `string` | Image ID reference string. |
+| `"row"` | Arranges child elements horizontally side-by-side. |
+| `"column"` | Arranges child elements vertically stacked. |
+| `"2x2"`, `"3x5"`, `"1x2"`, `"2x3"`, `"3x3"` | **Grid Layout**: Arranges elements into an RxC grid layout (e.g. `2x2` = 2 rows x 2 columns). |
+| `"grid"` | Generic grid specification requiring `"rows"` and `"cols"` integer properties. |
+| `"freebox"` | Absolute position bounding box layout using `position` (`x`, `y`) and `size` (`width`, `height`). |
+| `"ref"` | Direct reference to an image ID string. |
 | `"freebox"` | Absolutely positioned overlay box (`position: {x, y}`, `size: {width, height}`). |

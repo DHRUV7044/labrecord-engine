@@ -299,4 +299,83 @@ def test_multipage_header_repetition():
         assert os.path.getsize(out_pdf) > 0
 
 
+def test_layout_node_grid_types():
+    from renderer.document import LayoutNode
+
+    # Test 2x2 grid node
+    data_2x2 = {
+        "type": "2x2",
+        "elements": ["1", "2", "3", "4"]
+    }
+    node_2x2 = LayoutNode(data_2x2)
+    assert node_2x2.node_type == "column"
+    assert len(node_2x2.children) == 2
+    assert node_2x2.children[0].node_type == "row"
+    assert len(node_2x2.children[0].children) == 2
+    assert node_2x2.children[0].children[0].image_id == "1"
+
+    # Test 3x5 grid node
+    data_3x5 = {
+        "type": "3x5",
+        "elements": [str(i) for i in range(1, 16)]
+    }
+    node_3x5 = LayoutNode(data_3x5)
+    assert node_3x5.node_type == "column"
+    assert len(node_3x5.children) == 3
+    assert len(node_3x5.children[0].children) == 5
+
+
+def test_parse_page_range_str():
+    from renderer.pptx_importer import parse_page_range_str
+
+    assert parse_page_range_str("2") == {2}
+    assert parse_page_range_str("1,3-5") == {1, 3, 4, 5}
+    assert parse_page_range_str("1-4, 6") == {1, 2, 3, 4, 6}
+    assert parse_page_range_str(None) is None
+    assert parse_page_range_str("") is None
+
+
+def test_pptx_importer_mock():
+    import zipfile
+    from renderer.pptx_importer import add_pptx_to_record
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create a dummy PPTX zip file with a sample media image
+        pptx_path = os.path.join(tmpdir, "sample.pptx")
+        with zipfile.ZipFile(pptx_path, "w") as z:
+            z.writestr("ppt/presentation.xml", '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldIdLst><p:sldId r:id="rId1"/><p:sldId r:id="rId2"/></p:sldIdLst></p:presentation>')
+            z.writestr("ppt/_rels/presentation.xml.rels", '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Target="slides/slide1.xml"/><Relationship Id="rId2" Target="slides/slide2.xml"/></Relationships>')
+            z.writestr("ppt/slides/_rels/slide1.xml.rels", '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="../media/image1.png"/></Relationships>')
+            z.writestr("ppt/slides/_rels/slide2.xml.rels", '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="../media/image2.png"/></Relationships>')
+            z.writestr("ppt/media/image1.png", b"dummy_png_bytes_1")
+            z.writestr("ppt/media/image2.png", b"dummy_png_bytes_2")
+
+        rec_path = os.path.join(tmpdir, "record.json")
+        rec_data = {
+            "template": "vd",
+            "document": {"title": "Test Record"},
+            "experiments": [{"number": 1, "title": "Exp 1", "sections": []}]
+        }
+        with open(rec_path, "w") as f:
+            json.dump(rec_data, f)
+
+        # Import slide 2 with 1x1 grid
+        sec, count = add_pptx_to_record(
+            pptx_path=pptx_path,
+            record_json_path=rec_path,
+            page_numbers="2",
+            grid="1x1",
+            title="PPTX Slide 2",
+            image_dir="images"
+        )
+        assert count == 1
+        assert sec["title"] == "PPTX Slide 2"
+
+        with open(rec_path, "r") as f:
+            updated_rec = json.load(f)
+        assert len(updated_rec["images"]) == 1
+        assert updated_rec["images"][0]["id"] == "sample_slide_2_img_1"
+
+
+
 
