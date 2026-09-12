@@ -11,7 +11,9 @@ In LabRecord Engine, documents are defined using JSON structures (typically `rec
   "template": "default",
   "document": {
     "title": "ENGINEERING LAB RECORD",
-    "date": "13/08/2026"
+    "date": "13/08/2026",
+    "name": "Dhruv",
+    "roll_number": "220101"
   },
   "images": [ ... ],
   "experiments": [ ... ]
@@ -23,7 +25,9 @@ In LabRecord Engine, documents are defined using JSON structures (typically `rec
 | Parameter | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
 | `"template"` | `string` | No | Name of template styling to use (`"default"`, `"vd"`, `"cao"`). Fallback: `"default"`. |
-| `"document"` | `object` | No | Metadata about the overall document (e.g. `"title"`, `"date"`). |
+| `"document"` | `object` | No | Metadata about the overall document (e.g. `"title"`, `"date"`, `"name"`, `"roll_number"`). |
+| `"name"` / `"student_name"` | `string` | No | Student name displayed at the top of every page above experiment header. |
+| `"roll_number"` / `"roll_no"` | `string` | No | Student roll number displayed at the top of every page above experiment header. |
 | `"images"` | `array` | No | **Global Image Registry**: Array of image object definitions. |
 | `"experiments"` | `array` | **Yes** | Array of experiment objects containing sections and content. |
 

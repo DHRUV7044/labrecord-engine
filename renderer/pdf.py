@@ -33,14 +33,25 @@ def generate_document_pdf(doc_model, output_path, config=None):
     margin_t = config.margin_top
     margin_b = config.margin_bottom
 
-    # Check if experiment header is enabled
     show_header = config.get("experiment_header", "show_header", default=None)
     if show_header is None:
         show_header = config.get("experiment_header", "enabled", default=None)
     if show_header is None:
         show_header = config.get("header", "show_header", default=True)
 
-    top_margin_doc = (margin_t + 20) if show_header else margin_t
+    has_student_info = bool(doc_model.name or doc_model.roll_number)
+    layout_style = config.get("experiment_header", "layout_style", default="centered")
+
+    if show_header:
+        if has_student_info:
+            top_margin_doc = margin_t + (26 if layout_style == "split_top" else 36)
+        else:
+            top_margin_doc = margin_t + 20
+    else:
+        if has_student_info:
+            top_margin_doc = margin_t + 16
+        else:
+            top_margin_doc = margin_t
 
 
     doc = SimpleDocTemplate(
@@ -74,10 +85,10 @@ def generate_document_pdf(doc_model, output_path, config=None):
 
     # Canvas callback for top experiment header and date line ABOVE rule
     def on_first_page(canv, document):
-        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config)
+        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number)
 
     def on_later_pages(canv, document):
-        pass
+        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number)
 
     numbering_style_table = config.get("table", "numbering_style", default="sequential")
     numbering_style_figure = config.get("figure", "numbering_style", default="sequential")

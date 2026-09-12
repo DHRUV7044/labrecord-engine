@@ -546,7 +546,9 @@ TEMPLATES = {
     }
 }
 
-def init_project(target_dir=".", template_name="default", make_image_dir=False, force=False):
+import copy
+
+def init_project(target_dir=".", template_name="default", make_image_dir=False, force=False, name=None, roll_number=None):
     target_dir = os.path.abspath(target_dir)
     os.makedirs(target_dir, exist_ok=True)
 
@@ -556,7 +558,11 @@ def init_project(target_dir=".", template_name="default", make_image_dir=False, 
         avail_str = "\n  ".join(available)
         raise ValueError(f"ERROR: Template '{template_name}' not found.\nAvailable templates:\n  {avail_str}")
 
-    template_files = TEMPLATES.get(template_key, TEMPLATES["default"])
+    template_files = copy.deepcopy(TEMPLATES.get(template_key, TEMPLATES["default"]))
+    if name:
+        template_files["record.json"].setdefault("document", {})["name"] = name
+    if roll_number:
+        template_files["record.json"].setdefault("document", {})["roll_number"] = roll_number
 
     print(f"Initializing LabRecord project in {target_dir} (template: '{template_key}')...")
 

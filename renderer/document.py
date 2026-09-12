@@ -236,6 +236,37 @@ class DocumentModel:
         self.title = doc_info.get("title", "VLSI Engineering Lab Record")
         self.date = doc_info.get("date", "13/08/2026")
 
+        # Extract student info (Name & Roll Number)
+        student_info = doc_info.get("student", {}) if isinstance(doc_info.get("student"), dict) else {}
+        root_student_info = data.get("student", {}) if isinstance(data.get("student"), dict) else {}
+
+        self.name = str(
+            doc_info.get("name") or 
+            doc_info.get("student_name") or 
+            doc_info.get("author") or 
+            student_info.get("name") or 
+            root_student_info.get("name") or 
+            data.get("name") or 
+            data.get("student_name") or 
+            ""
+        ).strip()
+
+        self.roll_number = str(
+            doc_info.get("roll_number") or 
+            doc_info.get("roll_no") or 
+            doc_info.get("roll") or 
+            student_info.get("roll_number") or 
+            student_info.get("roll_no") or 
+            student_info.get("roll") or 
+            root_student_info.get("roll_number") or 
+            root_student_info.get("roll_no") or 
+            root_student_info.get("roll") or 
+            data.get("roll_number") or 
+            data.get("roll_no") or 
+            data.get("roll") or 
+            ""
+        ).strip()
+
         # Top-level Global Image Registry
         self.images = {}
         raw_global_images = data.get("images", [])

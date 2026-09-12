@@ -70,7 +70,9 @@ def handle_init(args):
             target_dir=args.directory,
             template_name=args.template,
             make_image_dir=args.makeimagedir,
-            force=args.force
+            force=args.force,
+            name=getattr(args, "name", None),
+            roll_number=getattr(args, "roll_number", None)
         )
 
         rec_path = os.path.join(args.directory, "record.json")
@@ -253,6 +255,17 @@ def main():
         "--csv",
         default=None,
         help="Import CSV table file into record.json during initialization"
+    )
+    init_parser.add_argument(
+        "--name",
+        default=None,
+        help="Student name to render at the top of every page"
+    )
+    init_parser.add_argument(
+        "--roll", "--roll-number",
+        default=None,
+        dest="roll_number",
+        help="Student roll number to render at the top of every page"
     )
 
     # generate command

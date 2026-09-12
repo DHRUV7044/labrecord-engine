@@ -120,3 +120,71 @@ def test_render_vd_document():
         generate_document_pdf(doc_model, out_pdf)
         assert os.path.exists(out_pdf)
         assert os.path.getsize(out_pdf) > 0
+
+
+def test_student_info_parsing():
+    doc_data = {
+        "document": {
+            "title": "Engineering Lab Record",
+            "name": "Dhruv",
+            "roll_number": "220101"
+        },
+        "experiments": [
+            {
+                "number": 1,
+                "title": "Inverter",
+                "sections": [
+                    {
+                        "type": "text",
+                        "title": "AIM",
+                        "text": "Sample text"
+                    }
+                ]
+            }
+        ]
+    }
+    model = DocumentModel(doc_data)
+    assert model.name == "Dhruv"
+    assert model.roll_number == "220101"
+
+
+def test_init_project_with_student_info():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        init_project(tmpdir, template_name="vd", name="Dhruv", roll_number="220101")
+        rec_path = os.path.join(tmpdir, "record.json")
+        assert os.path.exists(rec_path)
+        with open(rec_path, "r") as f:
+            rec_data = json.load(f)
+        assert rec_data["document"]["name"] == "Dhruv"
+        assert rec_data["document"]["roll_number"] == "220101"
+
+
+def test_student_info_pdf_rendering():
+    doc_data = {
+        "template": "vd",
+        "document": {
+            "title": "Engineering Lab Record",
+            "name": "Dhruv",
+            "roll_no": "220101"
+        },
+        "experiments": [
+            {
+                "number": 1,
+                "title": "Inverter",
+                "sections": [
+                    {
+                        "type": "text",
+                        "title": "AIM",
+                        "text": "Sample text for student header testing."
+                    }
+                ]
+            }
+        ]
+    }
+    model = DocumentModel(doc_data)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_pdf = os.path.join(tmpdir, "student_header_test.pdf")
+        generate_document_pdf(model, out_pdf)
+        assert os.path.exists(out_pdf)
+        assert os.path.getsize(out_pdf) > 0
+
