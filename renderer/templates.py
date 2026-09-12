@@ -532,7 +532,7 @@ CAO_RECORD_JSON = {
 SIT_SW_RECORD_JSON = {
     "template": "sit_sw",
     "document": {
-        "title": "SOFTWARE ENGINEERING LAB RECORD",
+        "title": "ENGINEERING LAB RECORD",
         "name": "",
         "roll_number": ""
     },
@@ -540,80 +540,91 @@ SIT_SW_RECORD_JSON = {
     "experiments": [
         {
             "number": 1,
-            "title": "Software Requirements Specification & System Design",
+            "title": "Lab Experiment",
+            "date": "",
             "sections": [
                 {
                     "type": "text",
                     "number": 1,
-                    "title": "AIM",
-                    "text": "To develop Software Requirements Specification (SRS) and design architectural models for the system."
+                    "title": "Aim",
+                    "new_page": False,
+                    "text": "To design and study the implementation pattern and structures."
                 },
                 {
                     "type": "text",
                     "number": 2,
-                    "title": "THEORY",
-                    "text": [
-                        "Software engineering involves applying systematic techniques to software analysis, design, testing, and maintenance.",
-                        "UML diagrams including Use Case, Class, Sequence, and Activity diagrams model functional requirements and behavior."
-                    ]
+                    "title": "Tool",
+                    "new_page": False,
+                    "text": "Simulation Tool"
                 },
                 {
-                    "type": "code",
+                    "type": "text",
                     "number": 3,
-                    "title": "SOURCE CODE",
-                    "language": "Java",
-                    "code": [
-                        "public class SystemModel {",
-                        "    public static void main(String[] args) {",
-                        "        System.out.println(\"SIT Software Engineering Model\");",
-                        "    }",
-                        "}"
+                    "title": "THEORY",
+                    "new_page": False,
+                    "text": [
+                        "Theoretical background and principles of the experiment."
                     ]
                 },
                 {
                     "type": "table",
                     "number": 4,
-                    "title": "SYSTEM SPECIFICATIONS",
+                    "title": "DESIGN PARAMETERS",
+                    "new_page": True,
                     "element_type": "column",
                     "elements": [
                         {
-                            "title": "Component",
-                            "entries": ["Frontend", "Backend", "Database", "OS"]
+                            "title": "Parameter",
+                            "entries": ["Param 1", "Param 2"]
                         },
                         {
-                            "title": "Specification",
-                            "entries": ["React", "Spring Boot", "PostgreSQL", "Linux"]
+                            "title": "Value",
+                            "entries": ["Val 1", "Val 2"]
                         }
                     ]
                 },
                 {
-                    "type": "text",
-                    "number": 5,
-                    "title": "CALCULATION",
-                    "text": [
-                        "Cyclomatic Complexity $V(G) = E - N + 2P$",
-                        "For control flow graph with $E=10$ edges and $N=8$ nodes: $V(G) = 10 - 8 + 2 = 4$"
-                    ]
-                },
-                {
                     "type": "image",
-                    "number": 6,
-                    "title": "DIAGRAMS & OUTPUTS",
+                    "number": 5,
+                    "title": "RESULT",
                     "new_page": True,
                     "subsections": [
                         {
+                            "title": "layout",
                             "layout": {
                                 "type": "column",
                                 "elements": [1, 2]
+                            }
+                        },
+                        {
+                            "title": "process outputs",
+                            "layout": {
+                                "type": "3x3",
+                                "elements": [3, 4, 5, 6, 7, 8, 9, 10, 11]
+                            }
+                        },
+                        {
+                            "title": "process outputs",
+                            "layout": {
+                                "type": "column",
+                                "elements": [12, 13]
                             }
                         }
                     ]
                 },
                 {
                     "type": "text",
+                    "number": 6,
+                    "title": "Observation",
+                    "new_page": False,
+                    "text": "The pattern was designed and observed within the specified boundary."
+                },
+                {
+                    "type": "text",
                     "number": 7,
-                    "title": "RESULT",
-                    "text": "The software design models and implementation were successfully created and verified."
+                    "title": "Conclusion",
+                    "new_page": False,
+                    "text": "The experiment was successfully designed and studied."
                 }
             ]
         }
