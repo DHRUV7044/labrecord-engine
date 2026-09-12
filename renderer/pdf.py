@@ -196,7 +196,7 @@ def _count_layout_images(node):
     return total
 
 
-def build_manifest(manifest_path="main.json", config_path="config.json"):
+def build_manifest(manifest_path="main.json", config_path=None):
     """
     Reads manifest file, validates it, and runs generation jobs.
     Returns list of job result tuples: (input_path, output_path, success_bool, error_message)
@@ -229,9 +229,17 @@ def build_manifest(manifest_path="main.json", config_path="config.json"):
         in_path = raw_in if os.path.isabs(raw_in) else os.path.normpath(os.path.join(manifest_dir, raw_in))
         out_path = raw_out if os.path.isabs(raw_out) else os.path.normpath(os.path.join(manifest_dir, raw_out))
 
+        job_config_path = config_path
+        if not job_config_path:
+            local_cfg = os.path.join(manifest_dir, "config.json")
+            if os.path.exists(local_cfg):
+                job_config_path = local_cfg
+        elif not os.path.isabs(job_config_path):
+            job_config_path = os.path.normpath(os.path.join(manifest_dir, job_config_path))
+
         try:
             doc_model = load_document(in_path)
-            config = load_config(config_path=config_path, template_name=doc_model.template_name)
+            config = load_config(config_path=job_config_path, template_name=doc_model.template_name)
             generate_document_pdf(doc_model, out_path, config=config)
             results.append((raw_in, raw_out, True, None))
         except Exception as e:

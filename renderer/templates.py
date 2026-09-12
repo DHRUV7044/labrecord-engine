@@ -672,6 +672,12 @@ def init_project(target_dir=".", template_name="default", make_image_dir=False, 
         raise ValueError(f"ERROR: Template '{template_name}' not found.\nAvailable templates:\n  {avail_str}")
 
     template_files = copy.deepcopy(TEMPLATES.get(template_key, TEMPLATES["default"]))
+    try:
+        from .template_loader import load_template
+        template_files["config.json"] = load_template(template_key)
+    except Exception:
+        pass
+
     if name:
         template_files["record.json"].setdefault("document", {})["name"] = name
     if roll_number:
