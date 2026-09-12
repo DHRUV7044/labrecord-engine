@@ -188,3 +188,77 @@ def test_student_info_pdf_rendering():
         assert os.path.exists(out_pdf)
         assert os.path.getsize(out_pdf) > 0
 
+
+def test_update_project_command():
+    from renderer.updater import update_project
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create an incomplete config.json missing student_offset_y and other options
+        cfg_path = os.path.join(tmpdir, "config.json")
+        incomplete_cfg = {
+            "page": {"size": "A4"},
+            "experiment_header": {
+                "font_size": 14
+            }
+        }
+        with open(cfg_path, "w") as f:
+            json.dump(incomplete_cfg, f)
+
+        rec_path = os.path.join(tmpdir, "record.json")
+        incomplete_rec = {
+            "document": {
+                "title": "Old Record"
+            }
+        }
+        with open(rec_path, "w") as f:
+            json.dump(incomplete_rec, f)
+
+        res = update_project(tmpdir)
+        assert res["config_updated"] is True
+        assert res["record_updated"] is True
+
+        with open(cfg_path, "r") as f:
+            updated_cfg = json.load(f)
+        assert "student_offset_y" in updated_cfg["experiment_header"]
+        assert "exp_no_offset_y" in updated_cfg["experiment_header"]
+
+        with open(rec_path, "r") as f:
+            updated_rec = json.load(f)
+        assert "name" in updated_rec["document"]
+        assert "roll_number" in updated_rec["document"]
+
+
+def test_custom_header_offsets_rendering():
+    doc_data = {
+        "template": "vd",
+        "document": {
+            "title": "Engineering Lab Record",
+            "name": "Dhruv",
+            "roll_no": "220101"
+        },
+        "experiments": [
+            {
+                "number": 1,
+                "sections": [
+                    {
+                        "type": "text",
+                        "title": "AIM",
+                        "text": "Testing custom offsets."
+                    }
+                ]
+            }
+        ]
+    }
+    model = DocumentModel(doc_data)
+    cfg = load_config("vd")
+    cfg.data["experiment_header"]["student_offset_y"] = 12
+    cfg.data["experiment_header"]["exp_no_offset_y"] = 0
+    cfg.data["experiment_header"]["date_offset_y"] = -10
+    cfg.data["experiment_header"]["rule_offset_y"] = -18
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_pdf = os.path.join(tmpdir, "custom_offsets.pdf")
+        generate_document_pdf(model, out_pdf, config=cfg)
+        assert os.path.exists(out_pdf)
+        assert os.path.getsize(out_pdf) > 0
+
+

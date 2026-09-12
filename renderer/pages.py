@@ -66,8 +66,15 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config, nam
     header_font_size = float(config.get("font_sizes", "header", default=11))
     font_size = float(config.get("experiment_header", "font_size", default=14))
 
+    student_offset_user = config.get("experiment_header", "student_offset_y", default=None)
+    exp_offset_user = config.get("experiment_header", "exp_no_offset_y", default=None)
+    date_offset_user = config.get("experiment_header", "date_offset_y", default=None)
+    rule_offset_user = config.get("experiment_header", "rule_offset_y", default=None)
+
+    student_offset_y = float(student_offset_user) if student_offset_user is not None else 8.0
+
     if has_student_info:
-        student_y = top_y + 8
+        student_y = top_y + student_offset_y
 
         name_str = str(name).strip() if name else ""
         if name_str:
@@ -85,20 +92,18 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config, nam
             canvas_obj.drawRightString(right_x, student_y, roll_str)
 
         if show_header:
-            if layout_style == "split_top":
-                exp_y = top_y - 6
-                date_y = top_y - 6
-            else:
-                exp_y = top_y - 6
-                date_y = top_y - 16
+            default_exp = -6.0
+            default_date = -6.0 if layout_style == "split_top" else -16.0
+            exp_y = top_y + (float(exp_offset_user) if exp_offset_user is not None else default_exp)
+            date_y = top_y + (float(date_offset_user) if date_offset_user is not None else default_date)
         else:
             exp_y = top_y
             date_y = top_y
     else:
-        exp_offset_y = float(config.get("experiment_header", "exp_no_offset_y", default=8))
-        date_offset_y = float(config.get("experiment_header", "date_offset_y", default=-2))
-        exp_y = top_y + exp_offset_y
-        date_y = top_y + date_offset_y
+        default_exp = 8.0
+        default_date = -2.0
+        exp_y = top_y + (float(exp_offset_user) if exp_offset_user is not None else default_exp)
+        date_y = top_y + (float(date_offset_user) if date_offset_user is not None else default_date)
 
     if show_header:
         exp_has_num = (exp_number is not None and str(exp_number).strip() != "")
@@ -132,17 +137,16 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config, nam
 
     # Horizontal rule line below header
     if show_rule:
-        rule_offset_y = float(config.get("experiment_header", "rule_offset_y", default=-6))
-        if has_student_info:
+        if rule_offset_user is not None:
+            rule_y = top_y + float(rule_offset_user)
+        elif has_student_info:
             if show_header:
-                if layout_style == "split_top":
-                    rule_y = top_y - 12
-                else:
-                    rule_y = top_y - 22
+                rule_y = top_y - (12.0 if layout_style == "split_top" else 22.0)
             else:
-                rule_y = top_y - 2
+                rule_y = top_y - 2.0
         else:
-            rule_y = min(exp_y, date_y) + rule_offset_y
+            default_rule = -6.0
+            rule_y = min(exp_y, date_y) + default_rule
 
         canvas_obj.setLineWidth(0.75)
         canvas_obj.setStrokeColor(colors.black)

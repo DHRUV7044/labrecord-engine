@@ -41,6 +41,7 @@ DEFAULT_CONFIG_JSON = {
     },
     "experiment_header": {
         "font_size": 14,
+        "student_offset_y": 8,
         "exp_no_offset_y": 8,
         "date_offset_y": -2,
         "rule_offset_y": -6,

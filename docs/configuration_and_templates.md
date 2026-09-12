@@ -50,6 +50,10 @@ $$\text{Project } \texttt{config.json} \longrightarrow \text{Template } \texttt{
   "experiment_header": {
     "layout_style": "centered",
     "font_size": 14,
+    "student_offset_y": 8,
+    "exp_no_offset_y": -6,
+    "date_offset_y": -16,
+    "rule_offset_y": -22,
     "show_header": true,
     "show_date": true,
     "show_rule": true,

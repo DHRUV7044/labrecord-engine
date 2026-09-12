@@ -6,6 +6,7 @@ from .pdf import build_manifest
 from .templates import init_project
 from .scanner import scan_images
 from .csv_importer import add_csv_to_record
+from .updater import update_project
 
 VERSION = "1.0.0"
 
@@ -115,6 +116,47 @@ def handle_csv(args):
         print()
     except Exception as e:
         print(f"ERROR: CSV import failed: {e}")
+        sys.exit(1)
+
+
+def handle_update(args):
+    print("========================================")
+    print("LabRecord Engine — Schema Update")
+    print("========================================")
+    print()
+
+    try:
+        results = update_project(target_dir=args.directory)
+        any_updated = False
+
+        if results["config_updated"]:
+            any_updated = True
+            print(f"Updated config.json: added {len(results['config_added_keys'])} missing parameter(s):")
+            for k in results["config_added_keys"]:
+                print(f"  + {k}")
+            print()
+
+        if results["record_updated"]:
+            any_updated = True
+            print(f"Updated record.json: added {len(results['record_added_keys'])} missing field(s):")
+            for k in results["record_added_keys"]:
+                print(f"  + {k}")
+            print()
+
+        if results["main_updated"]:
+            any_updated = True
+            print(f"Updated main.json: added {len(results['main_added_keys'])} missing field(s):")
+            for k in results["main_added_keys"]:
+                print(f"  + {k}")
+            print()
+
+        if not any_updated:
+            print("Project files are already up to date with the latest schema options.")
+        else:
+            print("Project schema update completed successfully.")
+
+    except Exception as e:
+        print(f"ERROR: Update failed: {e}")
         sys.exit(1)
 
 
@@ -350,6 +392,19 @@ def main():
         help="CSV column delimiter character (default: ',')"
     )
 
+    # update command
+    update_parser = subparsers.add_parser(
+        "update",
+        help="Update project JSON files with missing options from latest template schema",
+        description="Scans existing project files (config.json, record.json, main.json) and injects any missing default options without overwriting user settings."
+    )
+    update_parser.add_argument(
+        "directory",
+        nargs="?",
+        default=".",
+        help="Directory containing project JSON files to update (default: current directory)"
+    )
+
     # templates command
     templates_parser = subparsers.add_parser(
         "templates",
@@ -361,6 +416,8 @@ def main():
 
     if args.command == "init":
         handle_init(args)
+    elif args.command == "update":
+        handle_update(args)
     elif args.command == "generate":
         handle_generate(args)
     elif args.command == "scan":
