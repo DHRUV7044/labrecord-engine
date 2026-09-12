@@ -164,6 +164,11 @@ def generate_document_pdf(doc_model, output_path, config=None):
                         config=config,
                         figure_counter_start=fig_idx
                     )
+
+                    if sub_idx == 0 and sec_heading and sec_heading.has_heading:
+                        story.append(sec_heading)
+                        story.append(Spacer(1, 8))
+
                     story.append(img_flowable)
 
                     # Count how many images were placed in this subsection to increment figure counter

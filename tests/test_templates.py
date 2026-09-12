@@ -377,5 +377,42 @@ def test_pptx_importer_mock():
         assert updated_rec["images"][0]["id"] == 1
 
 
+def test_image_section_heading():
+    """Verify image section with title renders successfully."""
+    from PIL import Image
+    with tempfile.TemporaryDirectory() as tmpdir:
+        img_path = os.path.join(tmpdir, "test_img.png")
+        img = Image.new("RGB", (100, 100), color="blue")
+        img.save(img_path)
+
+        rec_data = {
+            "template": "default",
+            "document": {"title": "Test Record", "name": "Dhruv", "roll_number": "U24"},
+            "experiments": [{
+                "number": 1,
+                "title": "Exp 1",
+                "sections": [{
+                    "type": "image",
+                    "title": "Visual Output Section",
+                    "images": [{"id": "img1", "path": img_path, "title": "Test Img"}],
+                    "subsections": [{
+                        "title": "Subsection 1",
+                        "layout": {"type": "single", "id": "img1"}
+                    }]
+                }]
+            }]
+        }
+        rec_path = os.path.join(tmpdir, "record.json")
+        with open(rec_path, "w") as f:
+            json.dump(rec_data, f)
+
+        out_pdf = os.path.join(tmpdir, "out.pdf")
+        doc_model = load_document(rec_path)
+        generate_document_pdf(doc_model, out_pdf)
+        assert os.path.exists(out_pdf)
+        assert os.path.getsize(out_pdf) > 0
+
+
+
 
 
