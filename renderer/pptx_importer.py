@@ -194,23 +194,25 @@ def add_pptx_to_record(pptx_path, record_json_path="record.json", page_numbers=N
 
     for item in extracted:
         rel_path = os.path.join(image_dir, os.path.basename(item["path"])) if image_dir else item["path"]
-        img_id = str(next_id_num)
-        while img_id in existing_ids and not force:
+        img_id_int = next_id_num
+        img_id_str = str(img_id_int)
+        while img_id_str in existing_ids and not force:
             next_id_num += 1
-            img_id = str(next_id_num)
+            img_id_int = next_id_num
+            img_id_str = str(img_id_int)
         next_id_num += 1
 
         img_entry = {
-            "id": img_id,
+            "id": img_id_int,
             "path": rel_path,
             "title": item["title"]
         }
-        if img_id not in existing_ids or force:
-            if img_id in existing_ids:
-                existing_images.remove(existing_ids[img_id])
+        if img_id_str not in existing_ids or force:
+            if img_id_str in existing_ids:
+                existing_images.remove(existing_ids[img_id_str])
             existing_images.append(img_entry)
-            existing_ids[img_id] = img_entry
-        new_img_ids.append(img_id)
+            existing_ids[img_id_str] = img_entry
+        new_img_ids.append(img_id_int)
 
     # Determine items per page based on grid specification (e.g., '2x2', '3x5')
     grid_str = str(grid).strip()

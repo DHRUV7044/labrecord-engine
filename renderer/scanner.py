@@ -104,29 +104,31 @@ def scan_images(image_dir=".", record_json_path="record.json", recursive=False, 
             skipped.append((existing_paths[img_path_str]["id"], img_path_str, "Path already registered"))
             continue
 
-        # Handle ID assignment: use short numeric ID ("1", "2", "3", ...)
-        final_id = str(next_id_num)
-        while final_id in existing_ids and not force:
+        # Handle ID assignment: use integer numeric ID (1, 2, 3, ...)
+        final_id_int = next_id_num
+        final_id_str = str(final_id_int)
+        while final_id_str in existing_ids and not force:
             next_id_num += 1
-            final_id = str(next_id_num)
+            final_id_int = next_id_num
+            final_id_str = str(final_id_int)
 
         next_id_num += 1
 
         img_entry = {
-            "id": final_id,
+            "id": final_id_int,
             "path": img_path_str,
             "title": format_title(filename)
         }
 
-        if final_id in existing_ids and force:
+        if final_id_str in existing_ids and force:
             # Overwrite existing entry
-            data["images"] = [img if img.get("id") != final_id else img_entry for img in data["images"]]
+            data["images"] = [img if str(img.get("id")) != final_id_str else img_entry for img in data["images"]]
         else:
             data["images"].append(img_entry)
 
-        existing_ids[final_id] = img_entry
+        existing_ids[final_id_str] = img_entry
         existing_paths[img_path_str] = img_entry
-        added.append((final_id, img_path_str))
+        added.append((final_id_int, img_path_str))
 
     # Save updated record.json
     with open(abs_record_path, "w", encoding="utf-8") as f:

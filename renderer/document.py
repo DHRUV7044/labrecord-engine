@@ -73,9 +73,9 @@ import re
 
 class LayoutNode:
     def __init__(self, data):
-        if isinstance(data, str):
+        if isinstance(data, (str, int, float)):
             self.node_type = "ref"
-            self.image_id = data
+            self.image_id = str(data)
             self.children = []
         elif isinstance(data, dict):
             raw_type = str(data.get("type", "row")).lower()
@@ -108,9 +108,11 @@ class LayoutNode:
 
             elif raw_type == "freebox":
                 self.node_type = "freebox"
-                self.image_id = data.get("image")
-                if isinstance(self.image_id, dict):
-                    self.image_id = self.image_id.get("id") or self.image_id.get("path")
+                raw_img = data.get("image")
+                if isinstance(raw_img, dict):
+                    self.image_id = str(raw_img.get("id") or raw_img.get("path"))
+                else:
+                    self.image_id = str(raw_img) if raw_img is not None else ""
                 self.position = data.get("position", {"x": 0, "y": 0})
                 self.size = data.get("size", {"width": 100, "height": 100})
                 self.children = []
