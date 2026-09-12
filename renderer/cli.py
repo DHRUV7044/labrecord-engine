@@ -330,7 +330,7 @@ def handle_batch(args):
                 if pdf_file.exists():
                     folder_prefix = rel_p.as_posix().replace("/", "_").replace("\\", "_")
                     if folder_prefix and folder_prefix != ".":
-                        target_name = f"{folder_prefix}_{pdf_file.name}"
+                        target_name = f"{pdf_file.stem}_{folder_prefix}{pdf_file.suffix}"
                     else:
                         target_name = pdf_file.name
 
