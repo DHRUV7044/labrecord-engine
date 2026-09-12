@@ -143,6 +143,7 @@ class Section:
         self.number = data.get("number", "")
         self.title = data.get("title", "")
         self.new_page = bool(data.get("new_page", False))
+        self.blank_page = bool(data.get("blank_page") or data.get("blank") or self.type in ("blank", "blank_page"))
         self.doc_dir = doc_dir
 
         # Code attributes

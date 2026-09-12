@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import json
 
 from .pdf import build_manifest
 from .templates import init_project
@@ -185,6 +186,42 @@ def handle_pptx(args):
 
     except Exception as e:
         print(f"ERROR: PPTX import failed: {e}")
+        sys.exit(1)
+
+
+def handle_blank(args):
+    print("========================================")
+    print("LabRecord Engine — Blank Page / Page Break")
+    print("========================================")
+    print()
+
+    record_path = os.path.abspath(args.record)
+    if not os.path.exists(record_path):
+        print(f"ERROR: Target JSON file not found: {args.record}")
+        sys.exit(1)
+
+    try:
+        with open(record_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        experiments = data.setdefault("experiments", [])
+        if not experiments:
+            experiments.append({"number": 1, "title": "Lab Experiment", "sections": []})
+
+        exp = experiments[0]
+        sections = exp.setdefault("sections", [])
+        sec_type = "page_break" if getattr(args, "page_break", False) else "blank"
+        for _ in range(args.count):
+            sections.append({"type": sec_type})
+
+        with open(record_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+
+        kind = "blank page(s)" if sec_type == "blank" else "page break(s)"
+        print(f"Successfully added {args.count} {kind} to '{args.record}'.")
+
+    except Exception as e:
+        print(f"ERROR: Failed to add blank page: {e}")
         sys.exit(1)
 
 
@@ -475,6 +512,29 @@ def main():
         help="Overwrite existing images with matching IDs"
     )
 
+    # blank command
+    blank_parser = subparsers.add_parser(
+        "blank",
+        help="Insert blank page(s) or page break(s) into record.json",
+        description="Adds a section of type 'blank' or 'page_break' to record.json."
+    )
+    blank_parser.add_argument(
+        "-r", "--record",
+        default="record.json",
+        help="Target document JSON file to update (default: 'record.json')"
+    )
+    blank_parser.add_argument(
+        "-c", "--count",
+        type=int,
+        default=1,
+        help="Number of blank pages to add (default: 1)"
+    )
+    blank_parser.add_argument(
+        "--page-break",
+        action="store_true",
+        help="Insert a simple page break section instead of a full blank page"
+    )
+
     # templates command
     templates_parser = subparsers.add_parser(
         "templates",
@@ -490,6 +550,8 @@ def main():
         handle_update(args)
     elif args.command == "pptx":
         handle_pptx(args)
+    elif args.command == "blank":
+        handle_blank(args)
     elif args.command == "generate":
         handle_generate(args)
     elif args.command == "scan":

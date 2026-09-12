@@ -104,8 +104,21 @@ def generate_document_pdf(doc_model, output_path, config=None):
             if numbering_style_figure == "section_based":
                 sec_fig_counter = 1
 
-            # Handle new_page option
-            if sec.new_page and len(story) > 0:
+            # Handle blank section, page break, or blank_page / new_page options
+            if sec.type in ("blank", "blank_page"):
+                if len(story) > 0:
+                    story.append(Spacer(1, 1))
+                    story.append(PageBreak())
+                continue
+            elif sec.type in ("page_break", "pagebreak"):
+                if len(story) > 0:
+                    story.append(PageBreak())
+                continue
+
+            if getattr(sec, "blank_page", False) and len(story) > 0:
+                story.append(Spacer(1, 1))
+                story.append(PageBreak())
+            elif sec.new_page and len(story) > 0:
                 story.append(PageBreak())
 
             # Section Heading
