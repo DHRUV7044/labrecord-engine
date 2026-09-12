@@ -70,3 +70,29 @@ def test_find_manifest_discovery():
         
         found = find_manifest(tmpdir)
         assert found == manifest_p
+
+
+def test_cli_scan_integer_ids(capsys):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        rec_path = os.path.join(tmpdir, "record.json")
+        img_path = os.path.join(tmpdir, "test_img.png")
+        with open(img_path, "wb") as f:
+            f.write(b"PNG_DATA")
+
+        # Record containing integer ID
+        rec_data = {
+            "template": "default",
+            "images": [{"id": 1, "path": "test_img.png", "title": "Test Img"}],
+            "experiments": []
+        }
+        with open(rec_path, "w", encoding="utf-8") as f:
+            json.dump(rec_data, f)
+
+        sys_argv = ["labfile", "scan", tmpdir, "-r", rec_path]
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr("sys.argv", sys_argv)
+            main()
+
+        captured = capsys.readouterr()
+        assert "Skipped 1 image(s)" in captured.out
+        assert "[-] ID: 1" in captured.out

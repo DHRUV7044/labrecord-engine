@@ -295,13 +295,13 @@ def handle_scan(args):
         if added:
             print(f"Added {len(added)} image(s) to image registry in {args.record}:")
             for img_id, img_path in added:
-                print(f"  [+] ID: {img_id:20s} -> {img_path}")
+                print(f"  [+] ID: {str(img_id):20s} -> {img_path}")
             print()
 
         if skipped:
             print(f"Skipped {len(skipped)} image(s) (already registered or duplicate):")
             for img_id, img_path, reason in skipped:
-                print(f"  [-] ID: {img_id:20s} -> {img_path} ({reason})")
+                print(f"  [-] ID: {str(img_id):20s} -> {img_path} ({reason})")
             print()
 
         print(f"Updated {args.record} successfully.")
