@@ -532,7 +532,9 @@ CAO_RECORD_JSON = {
 SIT_SW_RECORD_JSON = {
     "template": "sit_sw",
     "document": {
-        "title": "SOFTWARE ENGINEERING LAB RECORD"
+        "title": "SOFTWARE ENGINEERING LAB RECORD",
+        "name": "",
+        "roll_number": ""
     },
     "images": [],
     "experiments": [
