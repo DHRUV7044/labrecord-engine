@@ -30,12 +30,13 @@ def format_experiment_type(raw_type):
     return cleaned.upper()
 
 
-def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config, name="", roll_number=""):
+def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config, name="", roll_number="", is_later_page=False):
     """
     Draws top experiment header and line based on configurable template layout_style:
     - centered: EXPERIMENT NO. centered, DATE on left
     - split_top: DATE on top-left, EXPERIMENT NO. on top-right
-    If name or roll_number is provided, renders student info at the very top of every page above experiment header.
+    If name or roll_number is provided, renders student info at the very top of every page.
+    On later pages (is_later_page=True), prints student info & top rule line, but omits repeating experiment no & date.
     """
     show_header = config.get("experiment_header", "show_header", default=None)
     if show_header is None:
@@ -73,6 +74,36 @@ def draw_top_header_rule(canvas_obj, exp_number, exp_type, date_str, config, nam
 
     student_offset_y = float(student_offset_user) if student_offset_user is not None else 8.0
 
+    if is_later_page:
+        # On later pages: render Student Info & Rule line, but suppress Experiment No & Date repetition
+        if has_student_info:
+            student_y = top_y + student_offset_y
+
+            name_str = str(name).strip() if name else ""
+            if name_str:
+                if not name_str.lower().startswith("name:"):
+                    name_str = f"NAME: {name_str}"
+                canvas_obj.setFont(header_font, header_font_size)
+                canvas_obj.drawString(margin_left, student_y, name_str)
+
+            roll_str = str(roll_number).strip() if roll_number else ""
+            if roll_str:
+                if not roll_str.lower().startswith("roll"):
+                    roll_str = f"ROLL NO: {roll_str}"
+                canvas_obj.setFont(header_font, header_font_size)
+                right_x = margin_left + printable_w
+                canvas_obj.drawRightString(right_x, student_y, roll_str)
+
+            if show_rule:
+                rule_y = top_y + (float(rule_offset_user) if rule_offset_user is not None else -2.0)
+                canvas_obj.setLineWidth(0.75)
+                canvas_obj.setStrokeColor(colors.black)
+                canvas_obj.line(margin_left, rule_y, margin_left + printable_w, rule_y)
+
+        canvas_obj.restoreState()
+        return
+
+    # First page rendering:
     if has_student_info:
         student_y = top_y + student_offset_y
 

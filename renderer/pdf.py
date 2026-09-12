@@ -85,10 +85,10 @@ def generate_document_pdf(doc_model, output_path, config=None):
 
     # Canvas callback for top experiment header and date line ABOVE rule
     def on_first_page(canv, document):
-        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number)
+        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=False)
 
     def on_later_pages(canv, document):
-        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number)
+        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=True)
 
     numbering_style_table = config.get("table", "numbering_style", default="sequential")
     numbering_style_figure = config.get("figure", "numbering_style", default="sequential")

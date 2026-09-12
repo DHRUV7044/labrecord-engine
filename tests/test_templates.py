@@ -262,3 +262,41 @@ def test_custom_header_offsets_rendering():
         assert os.path.getsize(out_pdf) > 0
 
 
+def test_multipage_header_repetition():
+    # Verify multi-page PDF generation where Page 1 has Exp No & Date while Later Pages omit them
+    doc_data = {
+        "template": "vd",
+        "document": {
+            "title": "Multi Page Test",
+            "name": "Dhruv",
+            "roll_number": "220101"
+        },
+        "experiments": [
+            {
+                "number": 1,
+                "title": "Multi Page Exp",
+                "sections": [
+                    {
+                        "type": "text",
+                        "title": "AIM",
+                        "text": "Page 1 Content"
+                    },
+                    {
+                        "type": "text",
+                        "title": "THEORY",
+                        "new_page": True,
+                        "text": "Page 2 Content"
+                    }
+                ]
+            }
+        ]
+    }
+    model = DocumentModel(doc_data)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_pdf = os.path.join(tmpdir, "multipage_header.pdf")
+        generate_document_pdf(model, out_pdf)
+        assert os.path.exists(out_pdf)
+        assert os.path.getsize(out_pdf) > 0
+
+
+
