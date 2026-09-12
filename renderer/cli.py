@@ -273,6 +273,80 @@ def handle_generate(args):
         sys.exit(0)
 
 
+def handle_batch(args):
+    from pathlib import Path
+    import shutil
+
+    start_dir = Path(args.directory).resolve()
+    all_pdfs_dir = start_dir / "all_pdfs"
+    all_pdfs_dir.mkdir(exist_ok=True)
+
+    print("========================================")
+    print("LabRecord Engine — Batch PDF Generator")
+    print("========================================")
+    print(f"Scanning directory : {start_dir}")
+    print(f"Output directory   : {all_pdfs_dir}")
+    print()
+
+    required_files = {"main.json", "config.json", "record.json"}
+    project_dirs = []
+
+    for root, dirs, files in os.walk(start_dir):
+        root_path = Path(root)
+        if "all_pdfs" in root_path.parts or ".git" in root_path.parts:
+            continue
+        if required_files.issubset(set(files)):
+            project_dirs.append(root_path)
+
+    if not project_dirs:
+        print("No subdirectories containing main.json, config.json, and record.json were found.")
+        return
+
+    print(f"Found {len(project_dirs)} project(s):")
+    for p in project_dirs:
+        rel_p = p.relative_to(start_dir)
+        display_name = rel_p.as_posix() if str(rel_p) != "." else "current directory"
+        print(f"  - {display_name}")
+    print()
+
+    copied_count = 0
+    for p in project_dirs:
+        rel_p = p.relative_to(start_dir)
+        display_name = rel_p.as_posix() if str(rel_p) != "." else "current directory"
+        print(f"Building project in: {display_name}...")
+
+        try:
+            manifest_path = find_manifest(str(p))
+            results = build_manifest(manifest_path)
+            for res_tuple in results:
+                if len(res_tuple) >= 3 and res_tuple[2]:  # success
+                    out_path = res_tuple[1]
+                elif isinstance(res_tuple, str):
+                    out_path = res_tuple
+                else:
+                    continue
+
+                pdf_file = Path(out_path) if os.path.isabs(out_path) else (p / out_path)
+                if pdf_file.exists():
+                    folder_prefix = rel_p.as_posix().replace("/", "_").replace("\\", "_")
+                    if folder_prefix and folder_prefix != ".":
+                        target_name = f"{folder_prefix}_{pdf_file.name}"
+                    else:
+                        target_name = pdf_file.name
+
+                    target_path = all_pdfs_dir / target_name
+                    shutil.copy2(pdf_file, target_path)
+                    print(f"  [+] Copied: {pdf_file.name} -> all_pdfs/{target_name}")
+                    copied_count += 1
+        except Exception as e:
+            print(f"  [-] ERROR processing {display_name}: {e}")
+
+    print()
+    print("========================================")
+    print(f"Successfully generated and collected {copied_count} PDF(s) into: {all_pdfs_dir}")
+    print("========================================")
+
+
 def handle_scan(args):
     print("========================================")
     print("LabRecord Engine — Image Scanner")
@@ -545,6 +619,19 @@ def main():
         help="Insert a simple page break section instead of a full blank page"
     )
 
+    # batch command
+    batch_parser = subparsers.add_parser(
+        "batch",
+        help="Scan child directories for main.json, config.json & record.json, generate PDFs, and collect them in all_pdfs/",
+        description="Batch generates PDFs for all child project directories and collects them into an 'all_pdfs' folder."
+    )
+    batch_parser.add_argument(
+        "directory",
+        nargs="?",
+        default=".",
+        help="Root directory to scan for project folders (default: current directory)"
+    )
+
     # templates command
     templates_parser = subparsers.add_parser(
         "templates",
@@ -562,6 +649,8 @@ def main():
         handle_pptx(args)
     elif args.command == "blank":
         handle_blank(args)
+    elif args.command == "batch":
+        handle_batch(args)
     elif args.command == "generate":
         handle_generate(args)
     elif args.command == "scan":
