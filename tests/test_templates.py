@@ -374,7 +374,7 @@ def test_pptx_importer_mock():
         with open(rec_path, "r") as f:
             updated_rec = json.load(f)
         assert len(updated_rec["images"]) == 1
-        assert updated_rec["images"][0]["id"] == "sample_slide_2_img_1"
+        assert updated_rec["images"][0]["id"] == "1"
 
 
 

@@ -182,16 +182,28 @@ def add_pptx_to_record(pptx_path, record_json_path="record.json", page_numbers=N
 
     # Update global images registry in record.json
     existing_images = record_data.setdefault("images", [])
-    existing_ids = {img.get("id"): img for img in existing_images if isinstance(img, dict)}
+    existing_ids = {str(img.get("id")): img for img in existing_images if isinstance(img, dict)}
 
+    max_numeric_id = 0
+    for k in existing_ids.keys():
+        if str(k).isdigit():
+            max_numeric_id = max(max_numeric_id, int(k))
+
+    next_id_num = max_numeric_id + 1
     new_img_ids = []
-    for count, item in enumerate(extracted, start=1):
-        img_id = item["id"]
+
+    for item in extracted:
         rel_path = os.path.join(image_dir, os.path.basename(item["path"])) if image_dir else item["path"]
+        img_id = str(next_id_num)
+        while img_id in existing_ids and not force:
+            next_id_num += 1
+            img_id = str(next_id_num)
+        next_id_num += 1
+
         img_entry = {
             "id": img_id,
             "path": rel_path,
-            "title": str(count)
+            "title": item["title"]
         }
         if img_id not in existing_ids or force:
             if img_id in existing_ids:

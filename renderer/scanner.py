@@ -14,18 +14,14 @@ def sanitize_id(filename):
     return clean_name if clean_name else "image"
 
 
-def format_title(filename, counter_idx=1):
+def format_title(filename):
     """
-    Generates a concise, short title for an image file.
-    If the filename is a short clean name (<= 15 chars), formats it cleanly.
-    Otherwise, returns a simple sequential number string '1', '2', '3', etc.
+    Generates a human-readable title from a filename.
+    e.g. 'cmos_inverter_layout.png' -> 'Cmos Inverter Layout'
     """
     name_without_ext = os.path.splitext(filename)[0]
     words = re.sub(r'[^a-zA-Z0-9]+', ' ', name_without_ext).split()
-    formatted = ' '.join(word.capitalize() for word in words) if words else name_without_ext
-    if len(formatted) <= 15 and formatted:
-        return formatted
-    return str(counter_idx)
+    return ' '.join(word.capitalize() for word in words) if words else name_without_ext
 
 
 def scan_images(image_dir=".", record_json_path="record.json", recursive=False, use_abs=False, force=False):
@@ -77,15 +73,22 @@ def scan_images(image_dir=".", record_json_path="record.json", recursive=False, 
     if "images" not in data or not isinstance(data["images"], list):
         data["images"] = []
 
-    existing_ids = {img["id"]: img for img in data["images"] if isinstance(img, dict) and "id" in img}
+    existing_ids = {str(img["id"]): img for img in data["images"] if isinstance(img, dict) and "id" in img}
     existing_paths = {img.get("path"): img for img in data["images"] if isinstance(img, dict) and "path" in img}
+
+    # Find highest existing numeric ID to continue sequence smoothly
+    max_numeric_id = 0
+    for k in existing_ids.keys():
+        if str(k).isdigit():
+            max_numeric_id = max(max_numeric_id, int(k))
+
+    next_id_num = max_numeric_id + 1
 
     added = []
     skipped = []
 
-    for scan_idx, img_file in enumerate(found_files, start=1):
+    for img_file in found_files:
         filename = os.path.basename(img_file)
-        base_id = sanitize_id(filename)
 
         # Path resolution
         if use_abs:
@@ -101,17 +104,18 @@ def scan_images(image_dir=".", record_json_path="record.json", recursive=False, 
             skipped.append((existing_paths[img_path_str]["id"], img_path_str, "Path already registered"))
             continue
 
-        # Handle ID collisions
-        final_id = base_id
-        counter = 2
+        # Handle ID assignment: use short numeric ID ("1", "2", "3", ...)
+        final_id = str(next_id_num)
         while final_id in existing_ids and not force:
-            final_id = f"{base_id}_{counter}"
-            counter += 1
+            next_id_num += 1
+            final_id = str(next_id_num)
+
+        next_id_num += 1
 
         img_entry = {
             "id": final_id,
             "path": img_path_str,
-            "title": format_title(filename, counter_idx=scan_idx)
+            "title": format_title(filename)
         }
 
         if final_id in existing_ids and force:
