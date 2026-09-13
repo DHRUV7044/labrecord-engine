@@ -248,8 +248,11 @@ def handle_generate(args):
     print(f"Using manifest: {manifest_path}")
     print()
 
+    override_name = getattr(args, "name", None)
+    override_roll = getattr(args, "roll_number", None)
+
     try:
-        results = build_manifest(manifest_path)
+        results = build_manifest(manifest_path, name=override_name, roll_number=override_roll)
     except Exception as e:
         print(f"FATAL ERROR: Failed to process manifest '{manifest_path}': {e}")
         sys.exit(1)
@@ -278,77 +281,14 @@ def handle_generate(args):
 
 
 def handle_batch(args):
-    from pathlib import Path
-    import shutil
-
-    start_dir = Path(args.directory).resolve()
-    all_pdfs_dir = start_dir / "all_pdfs"
-    all_pdfs_dir.mkdir(exist_ok=True)
-
-    print("========================================")
-    print("LabRecord Engine — Batch PDF Generator")
-    print("========================================")
-    print(f"Scanning directory : {start_dir}")
-    print(f"Output directory   : {all_pdfs_dir}")
-    print()
-
-    required_files = {"main.json", "config.json", "record.json"}
-    project_dirs = []
-
-    for root, dirs, files in os.walk(start_dir):
-        root_path = Path(root)
-        if "all_pdfs" in root_path.parts or ".git" in root_path.parts:
-            continue
-        if required_files.issubset(set(files)):
-            project_dirs.append(root_path)
-
-    if not project_dirs:
-        print("No subdirectories containing main.json, config.json, and record.json were found.")
-        return
-
-    print(f"Found {len(project_dirs)} project(s):")
-    for p in project_dirs:
-        rel_p = p.relative_to(start_dir)
-        display_name = rel_p.as_posix() if str(rel_p) != "." else "current directory"
-        print(f"  - {display_name}")
-    print()
-
-    copied_count = 0
-    for p in project_dirs:
-        rel_p = p.relative_to(start_dir)
-        display_name = rel_p.as_posix() if str(rel_p) != "." else "current directory"
-        print(f"Building project in: {display_name}...")
-
-        try:
-            manifest_path = find_manifest(str(p))
-            results = build_manifest(manifest_path)
-            for res_tuple in results:
-                if len(res_tuple) >= 3 and res_tuple[2]:  # success
-                    out_path = res_tuple[1]
-                elif isinstance(res_tuple, str):
-                    out_path = res_tuple
-                else:
-                    continue
-
-                pdf_file = Path(out_path) if os.path.isabs(out_path) else (p / out_path)
-                if pdf_file.exists():
-                    folder_prefix = rel_p.as_posix().replace("/", "_").replace("\\", "_")
-                    if folder_prefix and folder_prefix != ".":
-                        target_name = f"{pdf_file.stem}_{folder_prefix}{pdf_file.suffix}"
-                    else:
-                        target_name = pdf_file.name
-
-                    target_path = all_pdfs_dir / target_name
-                    shutil.copy2(pdf_file, target_path)
-                    print(f"  [+] Copied: {pdf_file.name} -> all_pdfs/{target_name}")
-                    copied_count += 1
-        except Exception as e:
-            print(f"  [-] ERROR processing {display_name}: {e}")
-
-    print()
-    print("========================================")
-    print(f"Successfully generated and collected {copied_count} PDF(s) into: {all_pdfs_dir}")
-    print("========================================")
+    from batch_generate import batch_generate
+    batch_generate(
+        start_dir=args.directory,
+        name=getattr(args, "name", None),
+        roll_number=getattr(args, "roll_number", None),
+        output_dir=getattr(args, "output_dir", None),
+        overwrite=getattr(args, "overwrite", False)
+    )
 
 
 def handle_scan(args):
@@ -468,6 +408,17 @@ def main():
         nargs="?",
         default=None,
         help="Optional path to main.json manifest file or project directory"
+    )
+    generate_parser.add_argument(
+        "-n", "--name",
+        default=None,
+        help="Override student name for generated PDFs"
+    )
+    generate_parser.add_argument(
+        "-r", "--roll-number", "--roll",
+        dest="roll_number",
+        default=None,
+        help="Override student roll number for generated PDFs"
     )
 
     # scan command
@@ -632,14 +583,37 @@ def main():
     # batch command
     batch_parser = subparsers.add_parser(
         "batch",
-        help="Scan child directories for main.json, config.json & record.json, generate PDFs, and collect them in all_pdfs/",
-        description="Batch generates PDFs for all child project directories and collects them into an 'all_pdfs' folder."
+        help="Scan child directories for main.json, config.json & record.json, generate PDFs, and collect them in output folder",
+        description="Batch generates PDFs for all child project directories and collects them into an output folder (e.g. 'all_pdfs' or '<name>_<roll_number>')."
     )
     batch_parser.add_argument(
         "directory",
         nargs="?",
         default=".",
         help="Root directory to scan for project folders (default: current directory)"
+    )
+    batch_parser.add_argument(
+        "-n", "--name",
+        default=None,
+        help="Override student name for all generated PDFs"
+    )
+    batch_parser.add_argument(
+        "-r", "--roll-number", "--roll",
+        dest="roll_number",
+        default=None,
+        help="Override student roll number for all generated PDFs"
+    )
+    batch_parser.add_argument(
+        "-o", "--overwrite", "--force",
+        action="store_true",
+        dest="overwrite",
+        help="Overwrite existing output directory and PDF files"
+    )
+    batch_parser.add_argument(
+        "--output-dir", "--out",
+        dest="output_dir",
+        default=None,
+        help="Custom output folder name (defaults to 'all_pdfs' or '<name>_<roll_number>')"
     )
 
     # templates command

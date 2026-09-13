@@ -47,5 +47,13 @@ class TestBatchGenerate(unittest.TestCase):
         self.assertTrue(any("proj1" in f for f in filenames))
         self.assertTrue(any("proj2" in f for f in filenames))
 
+    def test_batch_generate_override(self):
+        batch_generate(str(self.root_path), name="anmol", roll_number="U24EV052", overwrite=True)
+        custom_folder = self.root_path / "anmol_u24ev052"
+        self.assertTrue(custom_folder.exists())
+
+        pdf_files = list(custom_folder.glob("*.pdf"))
+        self.assertEqual(len(pdf_files), 2)
+
 if __name__ == "__main__":
     unittest.main()

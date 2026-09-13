@@ -11,9 +11,24 @@ if (PACKAGE_ROOT / "renderer").exists():
 
 REQUIRED_FILES = {"main.json", "config.json", "record.json"}
 
-def batch_generate(start_dir="."):
+def batch_generate(start_dir=".", name=None, roll_number=None, output_dir=None, overwrite=False):
     start_dir = Path(start_dir).resolve()
-    all_pdfs_dir = start_dir / "all_pdfs"
+
+    if output_dir:
+        folder_name = output_dir
+    elif name or roll_number:
+        parts = []
+        if name:
+            parts.append(str(name).strip().lower().replace(" ", "_"))
+        if roll_number:
+            parts.append(str(roll_number).strip().lower().replace(" ", "_"))
+        folder_name = "_".join(parts)
+    else:
+        folder_name = "all_pdfs"
+
+    all_pdfs_dir = start_dir / folder_name
+    if overwrite and all_pdfs_dir.exists():
+        shutil.rmtree(all_pdfs_dir, ignore_errors=True)
     all_pdfs_dir.mkdir(exist_ok=True)
 
     print("========================================")
@@ -21,14 +36,17 @@ def batch_generate(start_dir="."):
     print("========================================")
     print(f"Scanning directory : {start_dir}")
     print(f"Output directory   : {all_pdfs_dir}")
+    if name or roll_number:
+        print(f"Override Name      : {name or '(none)'}")
+        print(f"Override Roll No   : {roll_number or '(none)'}")
     print()
 
     project_dirs = []
     for root, dirs, files in os.walk(start_dir):
         root_path = Path(root)
 
-        # Skip all_pdfs and .git folders
-        if "all_pdfs" in root_path.parts or ".git" in root_path.parts:
+        # Skip output folder and .git folders
+        if folder_name in root_path.parts or "all_pdfs" in root_path.parts or ".git" in root_path.parts:
             continue
 
         if REQUIRED_FILES.issubset(set(files)):
@@ -64,7 +82,7 @@ def batch_generate(start_dir="."):
         if build_manifest and find_manifest:
             try:
                 manifest_path = find_manifest(str(p))
-                generated_pdfs = build_manifest(manifest_path)
+                generated_pdfs = build_manifest(manifest_path, name=name, roll_number=roll_number)
             except Exception as e:
                 print(f"  [-] ERROR building project in {display_name}: {e}")
                 continue
@@ -72,6 +90,10 @@ def batch_generate(start_dir="."):
             # Fallback to subprocess labfile generate
             import subprocess
             cmd = ["labfile", "generate", str(p)]
+            if name:
+                cmd.extend(["--name", name])
+            if roll_number:
+                cmd.extend(["--roll-number", roll_number])
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
                 print(f"  [-] ERROR generating PDF in {display_name}:\n{res.stderr}")
@@ -100,7 +122,7 @@ def batch_generate(start_dir="."):
 
                 target_path = all_pdfs_dir / target_name
                 shutil.copy2(pdf_file, target_path)
-                print(f"  [+] Copied: {pdf_file.name} -> all_pdfs/{target_name}")
+                print(f"  [+] Copied: {pdf_file.name} -> {folder_name}/{target_name}")
                 copied_count += 1
 
     print()
@@ -109,5 +131,18 @@ def batch_generate(start_dir="."):
     print("========================================")
 
 if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else "."
-    batch_generate(target)
+    import argparse
+    parser = argparse.ArgumentParser(description="LabRecord Engine — Batch PDF Generator")
+    parser.add_argument("directory", nargs="?", default=".", help="Root directory to scan for project folders")
+    parser.add_argument("-n", "--name", default=None, help="Override student name for all generated PDFs")
+    parser.add_argument("-r", "--roll-number", "--roll", dest="roll_number", default=None, help="Override student roll number")
+    parser.add_argument("-o", "--overwrite", "--force", action="store_true", dest="overwrite", help="Overwrite existing output directory")
+    parser.add_argument("--output-dir", "--out", dest="output_dir", default=None, help="Custom output folder name")
+    args = parser.parse_args()
+    batch_generate(
+        start_dir=args.directory,
+        name=args.name,
+        roll_number=args.roll_number,
+        output_dir=args.output_dir,
+        overwrite=args.overwrite
+    )

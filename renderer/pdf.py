@@ -15,10 +15,15 @@ from .images import ImagePageFlowable
 from .code import create_code_flowable
 
 
-def generate_document_pdf(doc_model, output_path, config=None):
+def generate_document_pdf(doc_model, output_path, config=None, name=None, roll_number=None):
     """
     Renders a DocumentModel object to an A4 PDF at output_path.
     """
+    if name is not None:
+        doc_model.name = name
+    if roll_number is not None:
+        doc_model.roll_number = roll_number
+
     if config is None:
         config = load_config(template_name=doc_model.template_name)
 
@@ -210,7 +215,7 @@ def _count_layout_images(node):
     return total
 
 
-def build_manifest(manifest_path="main.json", config_path=None):
+def build_manifest(manifest_path="main.json", config_path=None, name=None, roll_number=None):
     """
     Reads manifest file, validates it, and runs generation jobs.
     Returns list of job result tuples: (input_path, output_path, success_bool, error_message)
@@ -253,8 +258,12 @@ def build_manifest(manifest_path="main.json", config_path=None):
 
         try:
             doc_model = load_document(in_path)
+            if name is not None:
+                doc_model.name = name
+            if roll_number is not None:
+                doc_model.roll_number = roll_number
             config = load_config(config_path=job_config_path, template_name=doc_model.template_name)
-            generate_document_pdf(doc_model, out_path, config=config)
+            generate_document_pdf(doc_model, out_path, config=config, name=name, roll_number=roll_number)
             results.append((raw_in, raw_out, True, None))
         except Exception as e:
             results.append((raw_in, raw_out, False, str(e)))
