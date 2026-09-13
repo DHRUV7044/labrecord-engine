@@ -143,7 +143,15 @@ class Section:
         self.number = data.get("number", "")
         self.title = data.get("title", "")
         self.new_page = bool(data.get("new_page", False))
-        self.blank_page = bool(data.get("blank_page") or data.get("blank") or self.type in ("blank", "blank_page"))
+        self.blank_page = bool(data.get("blank_page") or data.get("blank") or self.type in ("blank", "blank_page", "empty", "empty_page", "raw_page"))
+        self.no_header = bool(
+            data.get("no_header") or
+            data.get("empty") or
+            data.get("clear") or
+            data.get("raw") or
+            (data.get("show_header") is False) or
+            self.type in ("empty", "empty_page", "raw_page")
+        )
         self.doc_dir = doc_dir
 
         # Code attributes

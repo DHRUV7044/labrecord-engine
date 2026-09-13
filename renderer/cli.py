@@ -215,14 +215,18 @@ def handle_blank(args):
         exp = experiments[0]
         sections = exp.setdefault("sections", [])
         sec_type = "page_break" if getattr(args, "page_break", False) else "blank"
+        is_empty = getattr(args, "empty", False)
         for _ in range(args.count):
-            sections.append({"type": sec_type})
+            sec_dict = {"type": sec_type}
+            if is_empty:
+                sec_dict["empty"] = True
+            sections.append(sec_dict)
 
         with open(record_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
-        kind = "blank page(s)" if sec_type == "blank" else "page break(s)"
-        print(f"Successfully added {args.count} {kind} to '{args.record}'.")
+        kind_desc = "empty blank page(s)" if (sec_type == "blank" and is_empty) else ("blank page(s)" if sec_type == "blank" else "page break(s)")
+        print(f"Successfully added {args.count} {kind_desc} to '{args.record}'.")
 
     except Exception as e:
         print(f"ERROR: Failed to add blank page: {e}")
@@ -617,6 +621,12 @@ def main():
         "--page-break",
         action="store_true",
         help="Insert a simple page break section instead of a full blank page"
+    )
+    blank_parser.add_argument(
+        "-e", "--empty", "--no-header", "--clear",
+        action="store_true",
+        dest="empty",
+        help="Insert completely empty blank page(s) with no headers, student info, or rules ('add nothing there')"
     )
 
     # batch command

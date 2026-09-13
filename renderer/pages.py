@@ -10,9 +10,21 @@ class LabCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._saved_page_states = []
+        self._header_callback = None
+        self._suppress_header = False
+
+    def set_header_callback(self, cb):
+        self._header_callback = cb
+
+    def suppress_header(self):
+        self._suppress_header = True
 
     def showPage(self):
+        if self._header_callback and not self._suppress_header:
+            self._header_callback(self)
         self._saved_page_states.append(dict(self.__dict__))
+        self._header_callback = None
+        self._suppress_header = False
         self._startPage()
 
     def save(self):
@@ -21,6 +33,24 @@ class LabCanvas(canvas.Canvas):
             self.__dict__.update(state)
             super().showPage()
         super().save()
+
+
+class SuppressHeaderFlowable(Flowable):
+    """
+    Flowable that signals to LabCanvas to suppress header rendering on the page where it is drawn.
+    """
+    def __init__(self):
+        super().__init__()
+        self.width = 0
+        self.height = 0
+
+    def wrap(self, availWidth, availHeight):
+        return 0, 0
+
+    def draw(self):
+        if hasattr(self.canv, 'suppress_header'):
+            self.canv.suppress_header()
+
 
 
 def format_experiment_type(raw_type):

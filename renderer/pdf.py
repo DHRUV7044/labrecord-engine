@@ -8,7 +8,7 @@ from reportlab.lib import colors
 
 from .config import load_config, Config
 from .document import load_document, DocumentModel
-from .pages import draw_top_header_rule, SectionHeadingFlowable, LabCanvas
+from .pages import draw_top_header_rule, SectionHeadingFlowable, LabCanvas, SuppressHeaderFlowable
 from .text import create_paragraph
 from .tables import create_table_flowable
 from .images import ImagePageFlowable
@@ -85,10 +85,16 @@ def generate_document_pdf(doc_model, output_path, config=None):
 
     # Canvas callback for top experiment header and date line ABOVE rule
     def on_first_page(canv, document):
-        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=False)
+        if hasattr(canv, 'set_header_callback'):
+            canv.set_header_callback(lambda c: draw_top_header_rule(c, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=False))
+        else:
+            draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=False)
 
     def on_later_pages(canv, document):
-        draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=True)
+        if hasattr(canv, 'set_header_callback'):
+            canv.set_header_callback(lambda c: draw_top_header_rule(c, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=True))
+        else:
+            draw_top_header_rule(canv, exp_num, exp_type, exp_date, config, name=doc_model.name, roll_number=doc_model.roll_number, is_later_page=True)
 
     numbering_style_table = config.get("table", "numbering_style", default="sequential")
     numbering_style_figure = config.get("figure", "numbering_style", default="sequential")
@@ -105,10 +111,13 @@ def generate_document_pdf(doc_model, output_path, config=None):
                 sec_fig_counter = 1
 
             # Handle blank section, page break, or blank_page / new_page options
-            if sec.type in ("blank", "blank_page"):
+            if sec.type in ("blank", "blank_page", "empty", "empty_page", "raw_page"):
                 if len(story) > 0:
-                    story.append(Spacer(1, 1))
                     story.append(PageBreak())
+                if sec.no_header:
+                    story.append(SuppressHeaderFlowable())
+                story.append(Spacer(1, 1))
+                story.append(PageBreak())
                 continue
             elif sec.type in ("page_break", "pagebreak"):
                 if len(story) > 0:

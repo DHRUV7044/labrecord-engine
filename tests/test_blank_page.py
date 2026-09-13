@@ -2,6 +2,7 @@ import os
 import json
 import tempfile
 import unittest
+import re
 from renderer.document import load_document
 from renderer.pdf import generate_document_pdf
 from renderer.cli import handle_blank
@@ -13,14 +14,14 @@ class TestBlankPage(unittest.TestCase):
         self.output_pdf = os.path.join(self.temp_dir.name, "output.pdf")
         
         record_data = {
-            "document": {"title": "TEST BLANK PAGE"},
+            "document": {"title": "TEST BLANK PAGE", "name": "Dhruv", "roll_number": "U24EV057"},
             "experiments": [
                 {
                     "number": 1,
                     "title": "Test Experiment",
                     "sections": [
                         {"type": "text", "title": "Aim", "text": "This is page 1."},
-                        {"type": "blank"},
+                        {"type": "blank", "empty": True},
                         {"type": "text", "title": "Conclusion", "text": "This is page 3."}
                     ]
                 }
@@ -37,25 +38,32 @@ class TestBlankPage(unittest.TestCase):
         pdf_path = generate_document_pdf(doc_model, output_path=self.output_pdf)
         self.assertTrue(os.path.exists(pdf_path))
         
-        # Verify with reportlab
         with open(pdf_path, "rb") as f:
             content = f.read()
-            page_count = content.count(b"/Type /Page")
-            self.assertEqual(page_count, 3)
+            pages = re.findall(rb'/Type\s*/Page\b', content)
+            self.assertEqual(len(pages), 3)
+
+    def test_empty_blank_page_section(self):
+        doc_model = load_document(self.record_path)
+        pdf_path = generate_document_pdf(doc_model, output_path=self.output_pdf)
+        self.assertTrue(os.path.exists(pdf_path))
+        self.assertTrue(os.path.getsize(pdf_path) > 0)
 
     def test_blank_cli_command(self):
         class DummyArgs:
             record = self.record_path
             count = 2
             page_break = False
+            empty = True
 
         handle_blank(DummyArgs())
 
         with open(self.record_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             sections = data["experiments"][0]["sections"]
-            blank_secs = [s for s in sections if s.get("type") == "blank"]
-            self.assertEqual(len(blank_secs), 3)
+            empty_blank_secs = [s for s in sections if s.get("type") == "blank" and s.get("empty")]
+            self.assertEqual(len(empty_blank_secs), 3)
 
 if __name__ == "__main__":
     unittest.main()
+
