@@ -32,18 +32,28 @@ Explore detailed component references, parameter lists, and usage guides:
 
 ## 1. Quick Start Installation
 
+### Option A: Standard Pip Installation (Recommended for any machine)
 ```bash
 # Clone the repository
 git clone <repo-url>
 cd labrecord-engine
 
-# Make executable available in PATH
+# Install package and 'labfile' CLI globally/in virtualenv
+pip install -e .
+```
+
+### Option B: Local Executable Copy
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy executable script to PATH
 chmod +x labfile
 mkdir -p ~/.local/bin
 cp labfile ~/.local/bin/
 ```
 
-Verify installation:
+Verify installation on any machine:
 
 ```bash
 labfile --help

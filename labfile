@@ -9,10 +9,17 @@ script_dir = os.path.dirname(real_script)
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
-# Repository root path fallback
-repo_path = "/home/dhruv/labrecord-engine"
-if os.path.exists(repo_path) and repo_path not in sys.path:
-    sys.path.insert(0, repo_path)
+# Check if 'renderer' module is importable or resolve from parent/environment
+try:
+    import renderer.cli
+except ImportError:
+    parent_dir = os.path.dirname(script_dir)
+    if os.path.exists(os.path.join(parent_dir, "renderer")) and parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+
+    env_dir = os.environ.get("LABRECORD_ENGINE_DIR")
+    if env_dir and os.path.exists(env_dir) and env_dir not in sys.path:
+        sys.path.insert(0, env_dir)
 
 from renderer.cli import main
 
