@@ -180,7 +180,7 @@ def contains_expression(text):
         return True
 
     ref_pattern = r'\b(?:re\d+|rc\d+|ce\d+|cr\d+|r\d+e\d+|r\d+c\d+|c\d+e\d+|c\d+r\d+)\b'
-    func_pattern = r'\b(?:avg|mean|perr|abs|sum|min|max)\s*\('
+    func_pattern = r'\b(?:avg|mean|sperr|signed_perr|s_perr|perr|abs|sum|min|max)\s*\('
     math_op_pattern = r'[\d.]+\s*[-+*/^]\s*[\d.]+'
     paren_math_pattern = r'\([\d.\s]+[-+*/^][\d.\s)]+'
 
@@ -220,7 +220,7 @@ def resolve_cell_value(matrix, target_r, target_c, cache, visited):
     return num_val
 
 
-def parse_and_eval_math_expr(expr_str, is_perr=False):
+def parse_and_eval_math_expr(expr_str, is_perr=False, is_sperr=False):
     """
     Evaluates a math string (e.g. "15.02 - 22.05" or "avg(15.02, 22.05)") safely.
     """
@@ -243,6 +243,15 @@ def parse_and_eval_math_expr(expr_str, is_perr=False):
         if v1 == 0.0:
             return 0.0
         return abs(v1 - v2) / abs(v1) * 100.0
+
+    def _sperr(val1, val2=None):
+        if val2 is None:
+            return 0.0
+        v1 = float(val1)
+        v2 = float(val2)
+        if v1 == 0.0:
+            return 0.0
+        return (v2 - v1) / abs(v1) * 100.0
 
     def _abs(val):
         return abs(float(val))
@@ -268,6 +277,9 @@ def parse_and_eval_math_expr(expr_str, is_perr=False):
         "avg": _avg,
         "mean": _avg,
         "perr": _perr,
+        "sperr": _sperr,
+        "signed_perr": _sperr,
+        "s_perr": _sperr,
         "abs": _abs,
         "sum": _sum,
         "min": _min,
@@ -277,7 +289,15 @@ def parse_and_eval_math_expr(expr_str, is_perr=False):
     try:
         res = eval(expr_str, {"__builtins__": None}, allowed_names)
         if isinstance(res, (int, float)):
-            if is_perr:
+            val = float(res)
+            if is_sperr:
+                if val > 0:
+                    return f"+{val:.2f}%" if val.is_integer() else f"+{val:.4f}".rstrip('0').rstrip('.') + "%"
+                elif val < 0:
+                    return f"{val:.2f}%" if val.is_integer() else f"{val:.4f}".rstrip('0').rstrip('.') + "%"
+                else:
+                    return "0%"
+            elif is_perr:
                 return f"{res:.2f}%" if float(res).is_integer() else f"{res:.4f}".rstrip('0').rstrip('.') + "%"
             if isinstance(res, float) and res.is_integer():
                 return f"{int(res)}"
@@ -334,7 +354,7 @@ def evaluate_single_cell_content(cell_text, matrix, curr_r, curr_c, cache, visit
         text = text[1:-1].strip()
     if text.startswith('$') and text.endswith('$') and len(text) > 2:
         text = text[1:-1].strip()
-    elif text.startswith('$') and re.search(r'^\$(?:perr|avg|mean|sum|min|max|abs|\(|re\d|rc\d|ce\d|cr\d|r\d+e\d|c\d+e\d)', text, re.IGNORECASE):
+    elif text.startswith('$') and re.search(r'^\$(?:sperr|signed_perr|s_perr|perr|avg|mean|sum|min|max|abs|\(|re\d|rc\d|ce\d|cr\d|r\d+e\d|c\d+e\d)', text, re.IGNORECASE):
         text = text[1:].strip()
 
     # Auto-fix missing commas inside function arguments e.g. "perr(re2  re3)" or "avg(re1 re2 re3)"
@@ -344,13 +364,14 @@ def evaluate_single_cell_content(cell_text, matrix, curr_r, curr_c, cache, visit
             args_str = m.group(2)
             tokens = [t.strip() for t in re.split(r'[\s,]+', args_str) if t.strip()]
             return func_name + "(" + ", ".join(tokens) + ")"
-        return re.sub(r'\b(perr|avg|mean|sum|min|max|abs)\s*\(([^)]+)\)', replace_args, expr, flags=re.IGNORECASE)
+        return re.sub(r'\b(sperr|signed_perr|s_perr|perr|avg|mean|sum|min|max|abs)\s*\(([^)]+)\)', replace_args, expr, flags=re.IGNORECASE)
 
     text = fix_func_commas(text)
 
-    is_perr = 'perr' in text.lower()
+    is_sperr = any(k in text.lower() for k in ('sperr', 'signed_perr', 's_perr'))
+    is_perr = ('perr' in text.lower()) and not is_sperr
     eval_text = replace_references_in_expr(text, matrix, curr_r, curr_c, cache, visited)
-    return parse_and_eval_math_expr(eval_text, is_perr=is_perr)
+    return parse_and_eval_math_expr(eval_text, is_perr=is_perr, is_sperr=is_sperr)
 
 
 def process_table_matrix_expressions(matrix):

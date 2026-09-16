@@ -58,6 +58,29 @@ def test_avg_and_perr_functions():
     assert res[3][2] == "50.4"
 
 
+def test_sperr_function():
+    matrix = [
+        ["Theoretical", "Measured", "Signed Error (%)"],
+        ["100.0", "112.5", "$sperr(re1, re2)$"],
+        ["100.0", "87.5", "$sperr(re1, re2)$"],
+        ["100.0", "100.0", "$sperr(re1, re2)$"],
+        ["0.50", "0.52", "$sperr(re1, re2)$"],
+        ["0.50", "0.48", "$sperr(re1, re2)$"]
+    ]
+    res = process_table_matrix_expressions(matrix)
+    # Row 1 (+12.5%): (112.5 - 100) / 100 * 100 = +12.5%
+    assert res[1][2] == "+12.5%"
+    # Row 2 (-12.5%): (87.5 - 100) / 100 * 100 = -12.5%
+    assert res[2][2] == "-12.5%"
+    # Row 3 (0%): (100 - 100) / 100 * 100 = 0%
+    assert res[3][2] == "0%"
+    # Row 4 (+4%): (0.52 - 0.50) / 0.50 * 100 = +4%
+    assert res[4][2] == "+4%"
+    # Row 5 (-4%): (0.48 - 0.50) / 0.50 * 100 = -4%
+    assert res[5][2] == "-4%"
+
+
+
 def test_direct_arithmetic_expressions():
     matrix = [
         ["Formula", "Result"],

@@ -159,3 +159,30 @@ $$\text{Error} = \frac{|V_{th} - V_{exp}|}{V_{th}} \times 100\%$$
 }
 ```
 *Result in PDF*: % Error column automatically evaluates to `4.00%`.
+
+---
+
+#### Signed Percentage Error Function: `$sperr(theoretical, experimental)`
+Computes signed percentage error with explicit `+` for positive error and `-` for negative error:
+
+$$\text{Signed Error} = \frac{V_{exp} - V_{th}}{|V_{th}|} \times 100\%$$
+
+```json
+"$sperr(re1, re2)"
+```
+
+```json
+{
+  "type": "table",
+  "title": "Signed Threshold Voltage Error",
+  "elements": [
+    "Parameter , Theoretical , Measured , Signed % Error",
+    "$V_{TH}$ , 0.50 , 0.52 , $sperr(re2, re3)",
+    "$V_{TH2}$ , 0.50 , 0.48 , $sperr(re2, re3)"
+  ]
+}
+```
+*Result in PDF*:
+- Row 1 Signed % Error evaluates to `+4.00%`
+- Row 2 Signed % Error evaluates to `-4.00%`
+
