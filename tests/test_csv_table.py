@@ -86,3 +86,44 @@ def test_add_csv_to_record():
         assert last_sec["type"] == "table"
         assert last_sec["title"] == "Custom Title"
         assert last_sec["csv"] == "results.csv"
+
+
+def test_multiple_tables_page_flow():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        csv1 = os.path.join(tmpdir, "t1.csv")
+        csv2 = os.path.join(tmpdir, "t2.csv")
+
+        with open(csv1, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Param", "Value"])
+            for i in range(10):
+                writer.writerow([f"P{i}", f"V{i}"])
+
+        with open(csv2, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Param", "Value"])
+            for i in range(25):
+                writer.writerow([f"Param_{i}", f"Val_{i}"])
+
+        doc_data = {
+            "title": "Multi Table Test",
+            "experiments": [{
+                "number": 1,
+                "title": "Exp 1",
+                "sections": [
+                    {"type": "text", "title": "Aim", "text": "Testing table page flow."},
+                    {"type": "table", "title": "Table 1", "csv": "t1.csv"},
+                    {"type": "table", "title": "Table 2", "csv": "t2.csv"}
+                ]
+            }]
+        }
+        doc_path = os.path.join(tmpdir, "record.json")
+        with open(doc_path, "w", encoding="utf-8") as f:
+            json.dump(doc_data, f)
+
+        doc = DocumentModel(doc_data, doc_path=doc_path)
+        pdf_path = os.path.join(tmpdir, "output.pdf")
+        generate_document_pdf(doc, pdf_path)
+        assert os.path.exists(pdf_path)
+        assert os.path.getsize(pdf_path) > 0
+

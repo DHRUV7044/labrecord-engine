@@ -148,20 +148,16 @@ def generate_document_pdf(doc_model, output_path, config=None, name=None, roll_n
                 story.append(Spacer(1, 4))
 
             elif sec.type == "table":
-                all_tbl_flowables = []
+                story.append(sec_heading)
+                story.append(Spacer(1, 8))
                 for tbl in sec.tables:
                     tbl_idx = sec_tbl_counter if numbering_style_table == "section_based" else seq_tbl_counter
                     t_flowables = create_table_flowable(tbl, config, section_num=sec.number, table_index=tbl_idx)
-                    all_tbl_flowables.extend(t_flowables)
+                    story.extend(t_flowables)
                     if numbering_style_table == "section_based":
                         sec_tbl_counter += 1
                     else:
                         seq_tbl_counter += 1
-                if all_tbl_flowables:
-                    story.append(KeepTogether([sec_heading, Spacer(1, 8)] + all_tbl_flowables))
-                else:
-                    story.append(sec_heading)
-                    story.append(Spacer(1, 8))
                 story.append(Spacer(1, 4))
 
             elif sec.type == "image":
