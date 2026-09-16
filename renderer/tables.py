@@ -529,7 +529,9 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
             except KeyError:
                 caption_text = f"Table {tbl_num_str}"
 
-    caption_para = Paragraph(caption_text, caption_style)
+    caption_font_size = float(config.get("font_sizes", "caption", default=10))
+    html_caption = process_text_with_latex(caption_text, font_size=caption_font_size)
+    caption_para = Paragraph(html_caption, caption_style)
 
     # Return list of flowables (Caption + Table + Spacer)
     return [caption_para, rl_table, Spacer(1, config.get("table", "spacing_after", default=10))]

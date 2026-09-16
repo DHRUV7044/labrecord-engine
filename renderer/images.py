@@ -3,9 +3,11 @@ import io
 from PIL import Image as PILImage
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Flowable
+from reportlab.platypus import Flowable, Paragraph
+from reportlab.lib.styles import ParagraphStyle
 
 from .layout import Rect, compute_recursive_image_layout, convert_freebox_coords, MM
+from .text import process_text_with_latex
 
 def load_and_prepare_image(image_path, rotation=0):
     """
@@ -159,9 +161,22 @@ class ImagePageFlowable(Flowable):
         caption_font = self.config.get_font("caption")
         caption_size = float(self.config.get("image", "caption_font_size", default=10))
 
-        canv.setFont(caption_font, caption_size)
-        caption_y = box.y + caption_spacing
-        caption_x = box.x + box.width / 2.0
+        if "$" in caption_text:
+            html_caption = process_text_with_latex(caption_text, font_size=caption_size)
+            caption_style = ParagraphStyle(
+                'FigCaption',
+                fontName=caption_font,
+                fontSize=caption_size,
+                leading=caption_size * 1.2,
+                alignment=1
+            )
+            p = Paragraph(html_caption, caption_style)
+            pw, ph = p.wrap(box.width, caption_height_pt)
+            p.drawOn(canv, box.x, box.y + caption_spacing)
+        else:
+            canv.setFont(caption_font, caption_size)
+            caption_y = box.y + caption_spacing
+            caption_x = box.x + box.width / 2.0
+            canv.drawCentredString(caption_x, caption_y, caption_text)
 
-        canv.drawCentredString(caption_x, caption_y, caption_text)
         canv.restoreState()

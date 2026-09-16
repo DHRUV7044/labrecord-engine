@@ -413,6 +413,39 @@ def test_image_section_heading():
         assert os.path.getsize(out_pdf) > 0
 
 
+def test_latex_in_titles_and_captions():
+    """Verify section titles and table captions with LaTeX math ($V_{DD}$) parse correctly."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        rec_data = {
+            "template": "default",
+            "document": {"title": "LaTeX Title Test"},
+            "experiments": [{
+                "number": 1,
+                "title": "Exp 1",
+                "sections": [
+                    {
+                        "type": "table",
+                        "title": "Result comparison for 50% of $V_{DD}$",
+                        "elements": [
+                            "Point , Value",
+                            "P1 , 0.2206"
+                        ]
+                    }
+                ]
+            }]
+        }
+        rec_path = os.path.join(tmpdir, "record.json")
+        with open(rec_path, "w") as f:
+            json.dump(rec_data, f)
+
+        out_pdf = os.path.join(tmpdir, "out.pdf")
+        doc_model = load_document(rec_path)
+        generate_document_pdf(doc_model, out_pdf)
+        assert os.path.exists(out_pdf)
+        assert os.path.getsize(out_pdf) > 0
+
+
+
 
 
 

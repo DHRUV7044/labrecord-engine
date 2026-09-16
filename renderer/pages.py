@@ -1,7 +1,23 @@
+import re
 from reportlab.pdfgen import canvas
 from reportlab.platypus import PageBreak, Flowable, Spacer, Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
+from .text import process_text_with_latex
+
+
+def uppercase_preserving_latex(text):
+    if not text:
+        return ""
+    parts = re.split(r'(\$.*?\$)', text)
+    res = []
+    for part in parts:
+        if part.startswith('$') and part.endswith('$') and len(part) >= 2:
+            res.append(part)
+        else:
+            res.append(part.upper())
+    return "".join(res)
+
 
 class LabCanvas(canvas.Canvas):
     """
@@ -50,7 +66,6 @@ class SuppressHeaderFlowable(Flowable):
     def draw(self):
         if hasattr(self.canv, 'suppress_header'):
             self.canv.suppress_header()
-
 
 
 def format_experiment_type(raw_type):
@@ -226,7 +241,7 @@ class SectionHeadingFlowable(Flowable):
     def __init__(self, number, title, config):
         super().__init__()
         self.number = str(number).strip() if number is not None else ""
-        self.title = str(title).strip().upper() if title is not None else ""
+        self.title = uppercase_preserving_latex(str(title).strip()) if title is not None else ""
         self.config = config
 
         self.font_name = config.get_font("heading")
@@ -250,8 +265,20 @@ class SectionHeadingFlowable(Flowable):
         heading_str = f"{self.number}. {self.title}" if self.number else self.title
 
         text_y = 10
-        canv.setFont(self.font_name, self.font_size)
-        canv.drawString(0, text_y, heading_str)
+        if "$" in heading_str:
+            html_heading = process_text_with_latex(heading_str, font_size=self.font_size)
+            heading_style = ParagraphStyle(
+                'SecHeadingStyle',
+                fontName=self.font_name,
+                fontSize=self.font_size,
+                leading=self.font_size * 1.2
+            )
+            p = Paragraph(html_heading, heading_style)
+            pw, ph = p.wrap(self.width, self.height)
+            p.drawOn(canv, 0, text_y)
+        else:
+            canv.setFont(self.font_name, self.font_size)
+            canv.drawString(0, text_y, heading_str)
 
         # Underline rule
         rule_y = text_y - 4
