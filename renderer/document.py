@@ -12,19 +12,9 @@ class ImageObject:
 
     @property
     def resolved_path(self):
-        if not self.raw_path:
-            return ""
-        if os.path.isabs(self.raw_path):
-            return self.raw_path
-        # 1. Primary resolution: relative to the directory containing the document JSON
-        p1 = os.path.normpath(os.path.join(self.doc_dir, self.raw_path))
-        if os.path.exists(p1):
-            return p1
-        # 2. Fallback resolution: relative to project root or current working directory
-        p2 = os.path.normpath(self.raw_path)
-        if os.path.exists(p2):
-            return p2
-        return p1
+        # Use unified path resolution utility
+        from .utils import resolve_path
+        return resolve_path(self.raw_path, self.doc_dir)
 
 
 class TableObject:
@@ -42,7 +32,9 @@ class TableObject:
             self.load_csv()
 
     def load_csv(self):
-        abs_path = self.csv_path if os.path.isabs(self.csv_path) else os.path.normpath(os.path.join(self.doc_dir, self.csv_path))
+        # Resolve CSV path using utils
+        from .utils import resolve_path
+        abs_path = resolve_path(self.csv_path, self.doc_dir)
         if not os.path.exists(abs_path):
             raise FileNotFoundError(f'ERROR: CSV file not found "{abs_path}" in {self.doc_dir}')
 
@@ -130,15 +122,30 @@ class ImageSubsection:
         self.layout = LayoutNode(layout_data) if layout_data else None
 
 
+from .graph import GraphObject
+
+
 class Section:
     def __init__(self, data, doc_dir=".", global_images=None):
         raw_type = data.get("type")
-        if not raw_type and any(k in data for k in ("csv", "csv_file")):
+        if not raw_type and any(k in data for k in ("x", "x_col", "x_column", "y", "y_col", "y_column", "graph_type", "chart_type")):
+            self.type = "graph"
+        elif not raw_type and any(k in data for k in ("csv", "csv_file")):
             self.type = "table"
         elif not raw_type and any(k in data for k in ("file", "code_file", "source", "code")):
             self.type = "code"
+        elif raw_type and raw_type.lower() in ("side_by_side_table", "table_group"):
+            self.type = "table"
         else:
             self.type = (raw_type or "text").lower()
+
+        self.table_layout = data.get("layout")
+        self.side_by_side = (
+            bool(data.get("side_by_side")) or
+            (self.table_layout == "side_by_side") or
+            (isinstance(self.table_layout, dict) and self.table_layout.get("type") == "side_by_side") or
+            (raw_type is not None and str(raw_type).lower() in ("side_by_side_table", "table_group"))
+        )
 
         self.number = data.get("number", "")
         self.title = data.get("title", "")
@@ -200,22 +207,47 @@ class Section:
 
         # Table attributes
         self.tables = []
+        self.table_items = []
         if self.type == "table":
             if "tables" in data:
                 for t_data in data["tables"]:
-                    csv_p = t_data.get("csv") or t_data.get("csv_file") or t_data.get("file") or t_data.get("path")
-                    delim = t_data.get("delimiter") or t_data.get("sep") or ","
-                    tbl = TableObject(
-                        t_data.get("number", self.number),
-                        t_data.get("title", self.title),
-                        t_data.get("element_type"),
-                        t_data.get("elements"),
-                        csv_path=csv_p,
-                        doc_dir=doc_dir,
-                        delimiter=delim
-                    )
-                    tbl.validate()
-                    self.tables.append(tbl)
+                    if isinstance(t_data, dict) and ("tables" in t_data or t_data.get("side_by_side") or t_data.get("layout") == "side_by_side"):
+                        group_tables = []
+                        for sub_t in t_data.get("tables", []):
+                            csv_p = sub_t.get("csv") or sub_t.get("csv_file") or sub_t.get("file") or sub_t.get("path")
+                            delim = sub_t.get("delimiter") or sub_t.get("sep") or ","
+                            tbl = TableObject(
+                                sub_t.get("number", self.number),
+                                sub_t.get("title", self.title),
+                                sub_t.get("element_type"),
+                                sub_t.get("elements"),
+                                csv_path=csv_p,
+                                doc_dir=doc_dir,
+                                delimiter=delim
+                            )
+                            tbl.validate()
+                            group_tables.append(tbl)
+                            self.tables.append(tbl)
+                        self.table_items.append({
+                            "side_by_side": True,
+                            "tables": group_tables,
+                            "layout": t_data.get("layout")
+                        })
+                    else:
+                        csv_p = t_data.get("csv") or t_data.get("csv_file") or t_data.get("file") or t_data.get("path")
+                        delim = t_data.get("delimiter") or t_data.get("sep") or ","
+                        tbl = TableObject(
+                            t_data.get("number", self.number),
+                            t_data.get("title", self.title),
+                            t_data.get("element_type"),
+                            t_data.get("elements"),
+                            csv_path=csv_p,
+                            doc_dir=doc_dir,
+                            delimiter=delim
+                        )
+                        tbl.validate()
+                        self.tables.append(tbl)
+                        self.table_items.append(tbl)
             else:
                 csv_p = data.get("csv") or data.get("csv_file") or (data.get("file") if "elements" not in data and "tables" not in data else None) or (data.get("path") if "elements" not in data and "tables" not in data else None)
                 delim = data.get("delimiter") or data.get("sep") or ","
@@ -230,6 +262,7 @@ class Section:
                 )
                 tbl.validate()
                 self.tables.append(tbl)
+                self.table_items.append(tbl)
 
         # Image attributes
         self.images = dict(global_images) if global_images else {}
@@ -254,6 +287,24 @@ class Section:
                 sub_title = sub_d.get("title", "")
                 sub_layout = sub_d.get("layout")
                 self.subsections.append(ImageSubsection(sub_title, sub_layout))
+
+        # Graph attributes
+        self.graphs = []
+        if self.type in ("graph", "plot", "chart"):
+            if "graphs" in data:
+                for g_data in data["graphs"]:
+                    g_obj = GraphObject(g_data, doc_dir=doc_dir, default_title=self.title, default_number=self.number)
+                    g_obj.validate()
+                    self.graphs.append(g_obj)
+            elif "plots" in data:
+                for g_data in data["plots"]:
+                    g_obj = GraphObject(g_data, doc_dir=doc_dir, default_title=self.title, default_number=self.number)
+                    g_obj.validate()
+                    self.graphs.append(g_obj)
+            else:
+                g_obj = GraphObject(data, doc_dir=doc_dir, default_title=self.title, default_number=self.number)
+                g_obj.validate()
+                self.graphs.append(g_obj)
 
 
 class Experiment:

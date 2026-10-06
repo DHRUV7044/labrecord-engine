@@ -1,0 +1,5 @@
+# Roo Code Rules
+- Execute tasks systematically from PRD.md.
+- Focus on one pending item per turn.
+- Run tests and linting after making modifications.
+- Append progress updates to progress.txt.

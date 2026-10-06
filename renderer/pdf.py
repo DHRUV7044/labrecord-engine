@@ -10,9 +10,10 @@ from .config import load_config, Config
 from .document import load_document, DocumentModel
 from .pages import draw_top_header_rule, SectionHeadingFlowable, LabCanvas, SuppressHeaderFlowable
 from .text import create_paragraph
-from .tables import create_table_flowable
+from .tables import create_table_flowable, create_side_by_side_table_flowables
 from .images import ImagePageFlowable
 from .code import create_code_flowable
+from .graph import create_graph_flowable
 
 
 def generate_document_pdf(doc_model, output_path, config=None, name=None, roll_number=None):
@@ -150,14 +151,51 @@ def generate_document_pdf(doc_model, output_path, config=None, name=None, roll_n
             elif sec.type == "table":
                 story.append(sec_heading)
                 story.append(Spacer(1, 8))
-                for tbl in sec.tables:
+                if getattr(sec, "table_items", None):
+                    for item in sec.table_items:
+                        tbl_idx = sec_tbl_counter if numbering_style_table == "section_based" else seq_tbl_counter
+                        if isinstance(item, dict) and item.get("side_by_side"):
+                            t_flowables = create_side_by_side_table_flowables(
+                                item["tables"],
+                                config,
+                                section_num=sec.number,
+                                start_table_index=tbl_idx,
+                                layout=item.get("layout")
+                            )
+                            story.extend(t_flowables)
+                            count = len(item["tables"])
+                        else:
+                            t_flowables = create_table_flowable(item, config, section_num=sec.number, table_index=tbl_idx)
+                            story.extend(t_flowables)
+                            count = 1
+
+                        if numbering_style_table == "section_based":
+                            sec_tbl_counter += count
+                        else:
+                            seq_tbl_counter += count
+                elif getattr(sec, "side_by_side", False) and len(sec.tables) > 1:
                     tbl_idx = sec_tbl_counter if numbering_style_table == "section_based" else seq_tbl_counter
-                    t_flowables = create_table_flowable(tbl, config, section_num=sec.number, table_index=tbl_idx)
+                    t_flowables = create_side_by_side_table_flowables(
+                        sec.tables,
+                        config,
+                        section_num=sec.number,
+                        start_table_index=tbl_idx,
+                        layout=getattr(sec, "table_layout", None)
+                    )
                     story.extend(t_flowables)
                     if numbering_style_table == "section_based":
-                        sec_tbl_counter += 1
+                        sec_tbl_counter += len(sec.tables)
                     else:
-                        seq_tbl_counter += 1
+                        seq_tbl_counter += len(sec.tables)
+                else:
+                    for tbl in sec.tables:
+                        tbl_idx = sec_tbl_counter if numbering_style_table == "section_based" else seq_tbl_counter
+                        t_flowables = create_table_flowable(tbl, config, section_num=sec.number, table_index=tbl_idx)
+                        story.extend(t_flowables)
+                        if numbering_style_table == "section_based":
+                            sec_tbl_counter += 1
+                        else:
+                            seq_tbl_counter += 1
                 story.append(Spacer(1, 4))
 
             elif sec.type == "image":
@@ -195,6 +233,19 @@ def generate_document_pdf(doc_model, output_path, config=None, name=None, roll_n
                 story.append(Spacer(1, 8))
                 code_flowables = create_code_flowable(sec, config)
                 story.extend(code_flowables)
+
+            elif sec.type in ("graph", "plot", "chart"):
+                story.append(sec_heading)
+                story.append(Spacer(1, 8))
+                for g_obj in sec.graphs:
+                    fig_idx = sec_fig_counter if numbering_style_figure == "section_based" else seq_fig_counter
+                    g_flowables = create_graph_flowable(g_obj, config, section_num=sec.number, graph_index=fig_idx)
+                    story.extend(g_flowables)
+                    if numbering_style_figure == "section_based":
+                        sec_fig_counter += 1
+                    else:
+                        seq_fig_counter += 1
+                story.append(Spacer(1, 4))
 
     doc.build(story, onFirstPage=on_first_page, onLaterPages=on_later_pages, canvasmaker=LabCanvas)
     return output_path

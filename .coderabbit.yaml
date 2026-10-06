@@ -1,0 +1,9 @@
+# CodeRabbit Config
+language: "en-US"
+reviews:
+  profile: "assertive"
+  auto_review:
+    enabled: true
+  path_instructions:
+    - path: "**/*"
+      instructions: "Perform rigorous quality checks for bugs, security vulnerabilities, and task alignment."

@@ -7,6 +7,7 @@ from .pdf import build_manifest
 from .templates import init_project
 from .scanner import scan_images
 from .csv_importer import add_csv_to_record
+from .graph_importer import add_graph_to_record
 from .updater import update_project
 from .pptx_importer import add_pptx_to_record
 
@@ -118,6 +119,36 @@ def handle_csv(args):
         print()
     except Exception as e:
         print(f"ERROR: CSV import failed: {e}")
+        sys.exit(1)
+
+
+def handle_graph(args):
+    print("========================================")
+    print("LabRecord Engine — CSV Graph Importer")
+    print("========================================")
+    print()
+
+    try:
+        sec = add_graph_to_record(
+            csv_path=args.csv_file,
+            record_json_path=args.record,
+            title=args.title,
+            number=args.number,
+            x_col=args.x_col,
+            y_cols=args.y_cols,
+            graph_type=args.graph_type,
+            x_label=args.x_label,
+            y_label=args.y_label,
+            grid=not args.no_grid,
+            legend=args.legend
+        )
+        print(f"Successfully generated graph section from '{args.csv_file}' in {args.record}")
+        print(f"  Title : {sec.get('title')}")
+        print(f"  Type  : {sec.get('graph_type')}")
+        print(f"  CSV   : {sec.get('csv')}")
+        print()
+    except Exception as e:
+        print(f"ERROR: Graph creation failed: {e}")
         sys.exit(1)
 
 
@@ -623,6 +654,74 @@ def main():
         description="Lists all installed/available document templates."
     )
 
+    # graph command
+    graph_parser = subparsers.add_parser(
+        "graph",
+        help="Generate a graph section from CSV file",
+        description="Reads a CSV file and appends a plot/graph section to record.json."
+    )
+    graph_parser.add_argument(
+        "csv_file",
+        help="Path to CSV file containing graph data"
+    )
+    graph_parser.add_argument(
+        "-r", "--record",
+        default="record.json",
+        help="Target document JSON file to update (default: 'record.json')"
+    )
+    graph_parser.add_argument(
+        "-t", "--title",
+        default=None,
+        help="Optional title for the graph"
+    )
+    graph_parser.add_argument(
+        "-n", "--number",
+        default=None,
+        help="Optional section number"
+    )
+    graph_parser.add_argument(
+        "-x", "--x-col", "--x-column",
+        dest="x_col",
+        default=0,
+        help="X-axis column header name or index (default: 0)"
+    )
+    graph_parser.add_argument(
+        "-y", "--y-col", "--y-column",
+        dest="y_cols",
+        default="1",
+        help="Y-axis column header name(s) or index(es), comma-separated for multiple series (default: 1)"
+    )
+    graph_parser.add_argument(
+        "--type", "--graph-type", "--style",
+        dest="graph_type",
+        default="line",
+        choices=["line", "scatter", "bar", "step"],
+        help="Graph type: line, scatter, bar, step (default: 'line')"
+    )
+    graph_parser.add_argument(
+        "--xlabel", "--x-label",
+        dest="x_label",
+        default=None,
+        help="Custom label for X axis"
+    )
+    graph_parser.add_argument(
+        "--ylabel", "--y-label",
+        dest="y_label",
+        default=None,
+        help="Custom label for Y axis"
+    )
+    graph_parser.add_argument(
+        "--no-grid",
+        action="store_true",
+        help="Disable background grid lines"
+    )
+    graph_parser.add_argument(
+        "--legend",
+        action="store_true",
+        default=None,
+        help="Force display of legend"
+    )
+
     args = parser.parse_args()
 
     if args.command == "init":
@@ -641,6 +740,8 @@ def main():
         handle_scan(args)
     elif args.command == "csv":
         handle_csv(args)
+    elif args.command == "graph":
+        handle_graph(args)
     elif args.command == "templates":
         handle_templates(args)
     else:

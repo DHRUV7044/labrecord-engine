@@ -61,11 +61,12 @@ Each entry in the `"experiments"` array represents a lab experiment.
 
 ## Section Components
 
-Sections are the primary building blocks of an experiment. LabRecord Engine supports four core section types:
+Sections are the primary building blocks of an experiment. LabRecord Engine supports five core section types:
 1. [`text`](#1-text-section) — Written paragraphs and LaTeX math formulas.
 2. [`code`](#2-code-section) — Code blocks loaded from files or inline code strings.
 3. [`table`](#3-table-section) — Data tables, CSV file imports, and calculated expressions.
 4. [`image`](#4-image-section) — Multi-image grid layouts, column stacks, and freeboxes.
+5. [`graph`](#5-graph-section) — Charts and graphs generated directly from CSV data files.
 
 ---
 
@@ -244,4 +245,40 @@ Used for placing schematics, waveforms, and layout screenshots with aspect-ratio
 | `"grid"` | Generic grid specification requiring `"rows"` and `"cols"` integer properties. |
 | `"freebox"` | Absolute position bounding box layout using `position` (`x`, `y`) and `size` (`width`, `height`). |
 | `"ref"` | Direct reference to an image ID string. |
-| `"freebox"` | Absolutely positioned overlay box (`position: {x, y}`, `size: {width, height}`). |
+
+---
+
+### 5. `graph` Section
+
+Used for drawing publication-quality plots and charts directly from CSV data files.
+
+```json
+{
+  "type": "graph",
+  "title": "CMOS Inverter DC Transfer Curve",
+  "csv": "data/dc_sweep.csv",
+  "x": "V_in",
+  "y": ["V_out", "I_dd"],
+  "graph_type": "line",
+  "x_label": "Input Voltage $V_{in}$ (V)",
+  "y_label": "Output Voltage $V_{out}$ (V)",
+  "grid": true,
+  "legend": true
+}
+```
+
+#### Graph Section Parameters
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `"csv"` / `"csv_file"` | `string` | **Required** | Path to the `.csv` data file. |
+| `"x"` / `"x_col"` | `string`/`integer` | `0` | Header name or column index (0-based or 1-based) for X axis. |
+| `"y"` / `"y_col"` | `string`/`integer`/`array` | `1` | Header name(s) or column index(es) for Y axis series. |
+| `"graph_type"` | `string` | `"line"` | Graph type: `"line"`, `"scatter"`, `"bar"`, `"step"`. |
+| `"x_label"` | `string` | CSV header | Custom label for X axis (supports LaTeX math `$ ... $`). |
+| `"y_label"` | `string` | CSV header | Custom label for Y axis (supports LaTeX math `$ ... $`). |
+| `"grid"` | `boolean` | `true` | Show or hide background grid lines. |
+| `"legend"` | `boolean` | Auto | Show or hide series legend (defaults to `true` for multi-series). |
+| `"line_style"` | `string` | `"-"` | Line style (`"-"`, `"--"`, `"-."`, `":"`). |
+| `"marker"` | `string` | `None` | Data point markers (`"o"`, `"s"`, `"^"`, `"x"`). |
+

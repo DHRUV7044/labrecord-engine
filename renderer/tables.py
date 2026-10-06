@@ -1,3 +1,5 @@
+import os
+import csv
 import re
 from reportlab.platypus import Table as RLTable, TableStyle, Paragraph, Spacer, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -180,6 +182,7 @@ def contains_expression(text):
         return True
 
     ref_pattern = r'\b(?:re\d+|rc\d+|ce\d+|cr\d+|r\d+e\d+|r\d+c\d+|c\d+e\d+|c\d+r\d+)\b'
+    cross_csv_pattern = r'\b[a-zA-Z0-9_\-\.]+?:(?:re\d+|rc\d+|ce\d+|cr\d+|r\d+e\d+|c\d+e\d+|\d+)\b'
     func_pattern = r'\b(?:avg|mean|sperr|signed_perr|s_perr|perr|abs|sum|min|max)\s*\('
     math_op_pattern = r'[\d.]+\s*[-+*/^]\s*[\d.]+'
     paren_math_pattern = r'\([\d.\s]+[-+*/^][\d.\s)]+'
@@ -190,13 +193,14 @@ def contains_expression(text):
 
     return bool(
         re.search(ref_pattern, t, re.IGNORECASE) or
+        re.search(cross_csv_pattern, t, re.IGNORECASE) or
         re.search(func_pattern, t, re.IGNORECASE) or
         re.search(math_op_pattern, t) or
         re.search(paren_math_pattern, t)
     )
 
 
-def resolve_cell_value(matrix, target_r, target_c, cache, visited):
+def resolve_cell_value(matrix, target_r, target_c, cache, visited, doc_dir=".", file_sources=None, ext_csv_cache=None):
     cell_key = (target_r, target_c)
     if cell_key in cache:
         return cache[cell_key]
@@ -209,7 +213,7 @@ def resolve_cell_value(matrix, target_r, target_c, cache, visited):
     if 0 <= target_r < len(matrix) and 0 <= target_c < len(matrix[target_r]):
         raw = matrix[target_r][target_c]
         if contains_expression(raw):
-            val_str = evaluate_single_cell_content(raw, matrix, target_r, target_c, cache, visited)
+            val_str = evaluate_single_cell_content(raw, matrix, target_r, target_c, cache, visited, doc_dir=doc_dir, file_sources=file_sources, ext_csv_cache=ext_csv_cache)
             num_val = extract_number(val_str)
         else:
             num_val = extract_number(raw)
@@ -218,6 +222,70 @@ def resolve_cell_value(matrix, target_r, target_c, cache, visited):
 
     cache[cell_key] = num_val
     return num_val
+
+
+def resolve_external_cell(file_ref, cell_token, curr_r, curr_c, doc_dir=".", file_sources=None, ext_csv_cache=None, cache=None, visited=None):
+    import csv
+    if file_sources is None:
+        file_sources = {}
+    if ext_csv_cache is None:
+        ext_csv_cache = {}
+
+    rel_path = file_sources.get(file_ref, file_ref)
+    if not rel_path.lower().endswith(".csv") and not os.path.exists(os.path.join(doc_dir, rel_path)):
+        rel_path = rel_path + ".csv"
+
+    abs_path = rel_path if os.path.isabs(rel_path) else os.path.normpath(os.path.join(doc_dir, rel_path))
+
+    if abs_path not in ext_csv_cache:
+        if os.path.exists(abs_path):
+            rows = []
+            with open(abs_path, "r", encoding="utf-8-sig") as f:
+                reader = csv.reader(f)
+                for r in reader:
+                    if r and r[0].strip().startswith('#'):
+                        continue
+                    if r and any(c.strip() for c in r):
+                        rows.append([c.strip() for c in r])
+            ext_csv_cache[abs_path] = rows
+        else:
+            ext_csv_cache[abs_path] = []
+
+    ext_matrix = ext_csv_cache[abs_path]
+    if not ext_matrix:
+        return 0.0
+
+    m_re = re.match(r'^(?:re|rc)(\d+)$', cell_token, re.IGNORECASE)
+    m_ce = re.match(r'^(?:ce|cr)(\d+)$', cell_token, re.IGNORECASE)
+    m_re_ec = re.match(r'^r(\d+)(?:e|c)(\d+)$', cell_token, re.IGNORECASE)
+    m_ce_er = re.match(r'^c(\d+)(?:e|r)(\d+)$', cell_token, re.IGNORECASE)
+
+    if m_re:
+        t_r = curr_r
+        t_c = int(m_re.group(1)) - 1
+    elif m_ce:
+        t_r = int(m_ce.group(1)) - 1
+        t_c = curr_c
+    elif m_re_ec:
+        t_r = int(m_re_ec.group(1)) - 1
+        t_c = int(m_re_ec.group(2)) - 1
+    elif m_ce_er:
+        t_c = int(m_ce_er.group(1)) - 1
+        t_r = int(m_ce_er.group(2)) - 1
+    elif cell_token.isdigit():
+        t_r = curr_r
+        t_c = int(cell_token) - 1
+    else:
+        return 0.0
+
+    if 0 <= t_r < len(ext_matrix) and 0 <= t_c < len(ext_matrix[t_r]):
+        val_raw = ext_matrix[t_r][t_c]
+        if contains_expression(val_raw):
+            val_str = evaluate_single_cell_content(val_raw, ext_matrix, t_r, t_c, cache or {}, visited or set(), doc_dir=doc_dir, file_sources=file_sources, ext_csv_cache=ext_csv_cache)
+            return extract_number(val_str)
+        else:
+            return extract_number(val_raw)
+    return 0.0
 
 
 def parse_and_eval_math_expr(expr_str, is_perr=False, is_sperr=False):
@@ -310,7 +378,24 @@ def parse_and_eval_math_expr(expr_str, is_perr=False, is_sperr=False):
         return expr_str
 
 
-def replace_references_in_expr(expr_text, matrix, curr_r, curr_c, cache, visited):
+def replace_references_in_expr(expr_text, matrix, curr_r, curr_c, cache, visited, doc_dir=".", file_sources=None, ext_csv_cache=None):
+    if file_sources is None:
+        file_sources = {}
+    if ext_csv_cache is None:
+        ext_csv_cache = {}
+
+    # First replace cross-CSV references: e.g. f1:re2 or tphl.csv:re2 or tphl:re2
+    cross_csv_pattern = r'\b([a-zA-Z0-9_\-\.]+?):(re\d+|rc\d+|ce\d+|cr\d+|r\d+e\d+|c\d+e\d+|\d+)\b'
+
+    def cross_csv_replacer(match):
+        file_ref = match.group(1)
+        cell_token = match.group(2)
+        val = resolve_external_cell(file_ref, cell_token, curr_r, curr_c, doc_dir, file_sources, ext_csv_cache, cache, visited)
+        return str(val)
+
+    text = re.sub(cross_csv_pattern, cross_csv_replacer, expr_text, flags=re.IGNORECASE)
+
+    # Then replace intra-sheet references: e.g. re2, rc2, etc.
     ref_pattern = r'\b(re\d+|rc\d+|ce\d+|cr\d+|r\d+e\d+|r\d+c\d+|c\d+e\d+|c\d+r\d+)\b'
 
     def replacer(match):
@@ -335,13 +420,13 @@ def replace_references_in_expr(expr_text, matrix, curr_r, curr_c, cache, visited
         else:
             return token
 
-        val = resolve_cell_value(matrix, t_r, t_c, cache, visited)
+        val = resolve_cell_value(matrix, t_r, t_c, cache, visited, doc_dir=doc_dir, file_sources=file_sources, ext_csv_cache=ext_csv_cache)
         return str(val)
 
-    return re.sub(ref_pattern, replacer, expr_text, flags=re.IGNORECASE)
+    return re.sub(ref_pattern, replacer, text, flags=re.IGNORECASE)
 
 
-def evaluate_single_cell_content(cell_text, matrix, curr_r, curr_c, cache, visited):
+def evaluate_single_cell_content(cell_text, matrix, curr_r, curr_c, cache, visited, doc_dir=".", file_sources=None, ext_csv_cache=None):
     if not isinstance(cell_text, str) or not contains_expression(cell_text):
         return cell_text
 
@@ -370,26 +455,65 @@ def evaluate_single_cell_content(cell_text, matrix, curr_r, curr_c, cache, visit
 
     is_sperr = any(k in text.lower() for k in ('sperr', 'signed_perr', 's_perr'))
     is_perr = ('perr' in text.lower()) and not is_sperr
-    eval_text = replace_references_in_expr(text, matrix, curr_r, curr_c, cache, visited)
+    eval_text = replace_references_in_expr(text, matrix, curr_r, curr_c, cache, visited, doc_dir=doc_dir, file_sources=file_sources, ext_csv_cache=ext_csv_cache)
     return parse_and_eval_math_expr(eval_text, is_perr=is_perr, is_sperr=is_sperr)
 
 
-def process_table_matrix_expressions(matrix):
+def parse_file_sources_from_rows(raw_rows):
+    """
+    Parses #source lines at top of CSV into a dictionary {alias: filename}.
+    Returns (cleaned_rows, file_sources_dict).
+    """
+    file_sources = {}
+    cleaned = []
+    for r in raw_rows:
+        if not r:
+            continue
+        first_cell = r[0].strip()
+        if first_cell.startswith("#"):
+            m = re.match(r'^#\s*source[s]?\s+([a-zA-Z0-9_\-\.]+)\s*[:=]\s*([a-zA-Z0-9_\-\./\\]+)', first_cell, re.IGNORECASE)
+            if m:
+                alias = m.group(1).strip()
+                target_file = m.group(2).strip()
+                file_sources[alias] = target_file
+            else:
+                m2 = re.match(r'^#\s*source[s]?\s+(.+)$', first_cell, re.IGNORECASE)
+                if m2:
+                    files = [f.strip() for f in m2.group(1).split(",") if f.strip()]
+                    for f in files:
+                        alias = os.path.splitext(os.path.basename(f))[0]
+                        file_sources[alias] = f
+        else:
+            cleaned.append(r)
+    return cleaned, file_sources
+
+
+def process_table_matrix_expressions(matrix, doc_dir=".", file_sources=None):
     """
     Evaluates all cell expressions in a 2D table matrix in-place.
+    Supports cross-CSV references and file alias directives (#source f1 = filename.csv).
     """
     if not matrix:
         return matrix
 
+    cleaned_matrix, parsed_sources = parse_file_sources_from_rows(matrix)
+    merged_sources = dict(parsed_sources)
+    if file_sources:
+        merged_sources.update(file_sources)
+
     cache = {}
+    ext_csv_cache = {}
     new_matrix = []
 
-    for r_idx, row in enumerate(matrix):
+    for r_idx, row in enumerate(cleaned_matrix):
         new_row = []
         for c_idx, cell_val in enumerate(row):
             visited = set()
             if isinstance(cell_val, str) and contains_expression(cell_val):
-                res_val = evaluate_single_cell_content(cell_val, matrix, r_idx, c_idx, cache, visited)
+                res_val = evaluate_single_cell_content(
+                    cell_val, cleaned_matrix, r_idx, c_idx, cache, visited,
+                    doc_dir=doc_dir, file_sources=merged_sources, ext_csv_cache=ext_csv_cache
+                )
                 new_row.append(res_val)
             else:
                 new_row.append(cell_val)
@@ -406,7 +530,8 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
     if not matrix:
         return []
 
-    matrix = process_table_matrix_expressions(matrix)
+    doc_dir = getattr(table_obj, "doc_dir", ".")
+    matrix = process_table_matrix_expressions(matrix, doc_dir=doc_dir)
 
 
     num_rows = len(matrix)
@@ -535,4 +660,76 @@ def create_table_flowable(table_obj, config, section_num=None, table_index=1):
 
     # Return list of flowables (Caption + Table + Spacer)
     return [caption_para, rl_table, Spacer(1, config.get("table", "spacing_after", default=10))]
+
+
+def create_side_by_side_table_flowables(tables, config, section_num=None, start_table_index=1, layout=None):
+    """
+    Renders multiple TableObjects side-by-side inside an outer container table.
+    """
+    if not tables:
+        return []
+
+    if len(tables) == 1:
+        return create_table_flowable(tables[0], config, section_num=section_num, table_index=start_table_index)
+
+    printable_w = config.printable_width
+    gap_width = 14
+
+    num_tables = len(tables)
+    available_w = printable_w - (gap_width * (num_tables - 1))
+
+    widths_spec = None
+    if isinstance(layout, dict):
+        widths_spec = layout.get("column_widths") or layout.get("widths")
+        gap_width = float(layout.get("column_gap", gap_width))
+
+    tbl_widths = []
+    if isinstance(widths_spec, list) and len(widths_spec) == num_tables:
+        for w_item in widths_spec:
+            if isinstance(w_item, (int, float)):
+                tbl_widths.append(float(w_item))
+            elif isinstance(w_item, str) and w_item.endswith("%"):
+                pct = float(w_item[:-1]) / 100.0
+                tbl_widths.append(available_w * pct)
+            else:
+                tbl_widths.append(available_w / num_tables)
+    else:
+        each_w = available_w / num_tables
+        tbl_widths = [each_w] * num_tables
+
+    sub_table_containers = []
+    col_widths_outer = []
+
+    for i, tbl_obj in enumerate(tables):
+        if i > 0:
+            sub_table_containers.append("")  # Spacer cell
+            col_widths_outer.append(gap_width)
+
+        sub_w = tbl_widths[i]
+
+        class SubConfigWrapper:
+            def __init__(self, base_cfg, sub_w):
+                self._cfg = base_cfg
+                self.printable_width = sub_w
+            def __getattr__(self, item):
+                return getattr(self._cfg, item)
+
+        sub_cfg = SubConfigWrapper(config, sub_w)
+        tbl_flowables = create_table_flowable(tbl_obj, sub_cfg, section_num=section_num, table_index=start_table_index + i)
+
+        sub_table_containers.append(tbl_flowables)
+        col_widths_outer.append(sub_w)
+
+    outer_matrix = [sub_table_containers]
+    outer_table = RLTable(outer_matrix, colWidths=col_widths_outer)
+    outer_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+
+    return [outer_table, Spacer(1, config.get("table", "spacing_after", default=10))]
+
 

@@ -155,7 +155,43 @@ labfile csv results.csv --embed -n "4.1" -t "Noise Margin Data"
 
 ---
 
-## 5. `labfile templates`
+## 5. `labfile graph`
+
+Generates a plot/graph section from a CSV file into `record.json`.
+
+```bash
+labfile graph <csv_file> [flags]
+```
+
+### Parameters & Flags
+
+| Flag / Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `csv_file` | `positional` | *Required* | Path to the `.csv` data file. |
+| `-r`, `--record` | `string` | `"record.json"` | Target document JSON file to update. |
+| `-t`, `--title` | `string` | *CSV filename* | Custom title for the graph section. |
+| `-n`, `--number` | `string` | `None` | Section number (e.g. `"4.2"`). |
+| `-x`, `--x-col` | `string`/`int` | `0` | X-axis column header name or index (default: 0). |
+| `-y`, `--y-col` | `string`/`int` | `1` | Y-axis column header name(s) or index(es), comma-separated for multiple series. |
+| `--type` | `string` | `"line"` | Graph type: `line`, `scatter`, `bar`, `step`. |
+| `--xlabel` | `string` | `None` | Custom X-axis label. |
+| `--ylabel` | `string` | `None` | Custom Y-axis label. |
+| `--no-grid` | `flag` | `false` | Disable background grid lines. |
+| `--legend` | `flag` | `false` | Force display of series legend. |
+
+### Examples
+
+```bash
+# Generate a line plot from transient.csv
+labfile graph transient.csv -t "Transient Response" -x "Time" -y "Vout"
+
+# Generate a scatter plot with multiple Y series
+labfile graph sweep.csv --type scatter -x 0 -y "1,2" --xlabel "V_in (V)" --ylabel "V_out / I_in"
+```
+
+---
+
+## 6. `labfile templates`
 
 Lists all available built-in document templates.
 
@@ -173,7 +209,7 @@ Available templates:
 
 ---
 
-## 6. Global Flags
+## 7. Global Flags
 
 | Flag | Description |
 | :--- | :--- |
